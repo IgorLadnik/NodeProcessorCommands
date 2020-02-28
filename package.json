@@ -8,6 +8,8 @@
     "amqplib": "^0.5.5",
     "buffer": "^5.4.3",
     "dictionaryjs": "^1.0.9",
+    "msnodesqlv8": "^0.8.10",
+    "mssql": "^6.1.0",
     "tsc": "^1.20150623.0",
     "tslint": "^6.0.0",
     "typescript": "^3.8.2"

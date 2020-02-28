@@ -1,6 +1,7 @@
 import { Publisher, Consumer } from './rabbitmq';
 import { Dictionary } from 'dictionaryjs';
 import { Command } from './command';
+import { SqlServerHelper } from './SqlServerHelper';
 
 class Processor {
     static commandsDir = './commands/';
@@ -8,6 +9,7 @@ class Processor {
     static dctCommand = new Dictionary<string, any>();
     queueNames: Array<string>;
     publishers = new Dictionary<string, Publisher>();
+    sqlServerHelper = new SqlServerHelper(); 
 
     constructor(...queueNames: Array<string>) {
         this.queueNames = queueNames;
@@ -19,10 +21,16 @@ class Processor {
     }
 
     async startConsumers() {
+        await this.sqlServerHelper.connect();
+        
         let promises = new Array<Promise<Consumer>>();
         for (let i = 0; i < this.queueNames.length; i++)
             promises.push(Consumer.start(Processor.connUrl, this.queueNames[i], async (msg: any) => 
-                await Processor.getAndExecuteCommand(msg, { publishers: this.publishers })));
+                await Processor.getAndExecuteCommand(msg, 
+                    { 
+                        publishers: this.publishers, 
+                        sqlServerHelper: this.sqlServerHelper 
+                    })));
         await Promise.all(promises);
     }
 
@@ -63,7 +71,4 @@ class Processor {
         processor.publishers.get(queueName)
             .publish<Command>(queueName, new Command(commandName, {a: 'igor', n: 1})),
         1000);
-
-    // setTimeout(async () => await processor.publishers.get(queueName).publish(queueName,
-    //     Buffer.from(JSON.stringify({name: commandName, args: {a: 'igor', n: 1}}))), 100);
 })();  
