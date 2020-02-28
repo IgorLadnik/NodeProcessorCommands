@@ -1,0 +1,21 @@
+{
+  "name": "il",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.ts",
+  "dependencies": {
+    "@types/amqplib": "^0.5.13",
+    "amqplib": "^0.5.5",
+    "buffer": "^5.4.3",
+    "dictionaryjs": "^1.0.9",
+    "tsc": "^1.20150623.0",
+    "tslint": "^6.0.0",
+    "typescript": "^3.8.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
