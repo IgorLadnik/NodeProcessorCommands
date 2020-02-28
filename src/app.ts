@@ -62,7 +62,7 @@ class Processor {
 
 (async function main() {
     const queueName: string = 'il-01';
-    let commandName = 'commandFirst';
+    let commandName = 'cmdFirst';
 
     let processor = new Processor(queueName);
     await Promise.all([processor.startConsumers(), processor.createPublishers()]);
