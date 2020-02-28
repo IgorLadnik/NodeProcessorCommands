@@ -2,17 +2,30 @@ import { Command } from '../command';
 import { Publisher } from '../rabbitmq';
 
 export async function executeCommand(args: any, messageInfo: any, resources: any): Promise<any> { 
-    console.log(`commandFirst.perform(): args: ${JSON.stringify(args)} | messageInfo: ${JSON.stringify(messageInfo)}`);
+    console.log(`cmdFirst: args: ${JSON.stringify(args)} | messageInfo: ${JSON.stringify(messageInfo)}`);
 
-    let recordset = await resources.sqlServerHelper.simpleQuery('*', 'Pets');
-    //1 let n: number = parseFloat(args.n) + 1;
+    let recordset: Array<any> = [];
+    let isSqlConnected = false;
+
+    if (resources.sqlServerHelper) {
+        try {
+            recordset = await resources.sqlServerHelper.simpleQuery('*', 'Pets');
+            isSqlConnected = true;
+        }
+        catch (err) {
+            console.log(err);
+        }
+    }
+
+    let publisher: Publisher = resources.publishers.get(messageInfo.queueName);
         
-    setTimeout(() => {
-        let publisher: Publisher = resources.publishers.get(messageInfo.queueName);
-        publisher.publish<Command>(messageInfo.queueName, new Command('cmdFirst', recordset[messageInfo.deliveryTag % recordset.length]))
-        //1 publisher.publish<Command>(messageInfo.queueName, new Command('cmdFirst', {a: `${args.a}`, n: `${n}`}))
-    }, 1000);
+    if (!isSqlConnected)
+        publisher.publish<Command>(messageInfo.queueName, new Command('cmdSqlConnect', {server: 'IGORMAIN\\MSSQLSERVER01', database: 'PetsDb'}));
 
+    setTimeout(() => 
+            publisher.publish<Command>(messageInfo.queueName, new Command('cmdFirst', recordset[messageInfo.deliveryTag % recordset.length]))
+        , 1000);
+        
     return resources;
 }
 

@@ -3,10 +3,10 @@ const sql = require('mssql/msnodesqlv8');
 export class SqlServerHelper {
     config: any;
 
-    constructor() {
+    constructor(config: any) {
         this.config = {
-            server: 'IGORMAIN\\MSSQLSERVER01', 
-            database: 'PetsDb',
+            server: config.server, 
+            database: config.database,
 
             options: {
                 trustedConnection: true
@@ -23,12 +23,20 @@ export class SqlServerHelper {
         }
     } 
 
-    async simpleQuery(select: string, from: string, where: string):Promise<any> {
+    async simpleQuery(select: string, from: string, where: string): Promise<Array<any>> {
         let suffix: string = '';
         if (where && where.length > 0)
             suffix = ` where ${where}`;
 
-        let request = new sql.Request();          
-        return (await request.query(`select ${select} from ${from}${suffix}`)).recordset;     
+        let request = new sql.Request(); 
+        let retRecordset = new Array<any>();         
+        try {
+            retRecordset = (await request.query(`select ${select} from ${from}${suffix}`)).recordset;     
+        }
+        catch (err) {
+            console.log(err);
+        }
+
+        return retRecordset;         
     }
 }

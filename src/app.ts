@@ -1,7 +1,7 @@
 import { Publisher, Consumer } from './rabbitmq';
 import { Dictionary } from 'dictionaryjs';
 import { Command } from './command';
-import { SqlServerHelper } from './SqlServerHelper';
+//import { SqlServerHelper } from './SqlServerHelper';
 
 class Processor {
     static commandsDir = './commands/';
@@ -9,7 +9,7 @@ class Processor {
     static dctCommand = new Dictionary<string, any>();
     queueNames: Array<string>;
     publishers = new Dictionary<string, Publisher>();
-    sqlServerHelper = new SqlServerHelper(); 
+    //sqlServerHelper = new SqlServerHelper(); 
     resorces: any;
 
     constructor(...queueNames: Array<string>) {
@@ -23,8 +23,8 @@ class Processor {
     }
 
     async startConsumers() {
-        await this.sqlServerHelper.connect();
-        this.resorces.sqlServerHelper = this.sqlServerHelper; 
+        // await this.sqlServerHelper.connect();
+        // this.resorces.sqlServerHelper = this.sqlServerHelper; 
         
         let promises = new Array<Promise<Consumer>>();
         for (let i = 0; i < this.queueNames.length; i++)
