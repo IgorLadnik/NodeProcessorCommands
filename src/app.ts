@@ -10,9 +10,11 @@ class Processor {
     queueNames: Array<string>;
     publishers = new Dictionary<string, Publisher>();
     sqlServerHelper = new SqlServerHelper(); 
+    resorces: any;
 
     constructor(...queueNames: Array<string>) {
         this.queueNames = queueNames;
+        this.resorces = { publishers: this.publishers };
     }
 
     async createPublishers() {
@@ -22,19 +24,18 @@ class Processor {
 
     async startConsumers() {
         await this.sqlServerHelper.connect();
+        this.resorces.sqlServerHelper = this.sqlServerHelper; 
         
         let promises = new Array<Promise<Consumer>>();
         for (let i = 0; i < this.queueNames.length; i++)
             promises.push(Consumer.start(Processor.connUrl, this.queueNames[i], async (msg: any) => 
-                await Processor.getAndExecuteCommand(msg, 
-                    { 
-                        publishers: this.publishers, 
-                        sqlServerHelper: this.sqlServerHelper 
-                    })));
+                this.resorces = await Processor.getAndExecuteCommand(msg, this.resorces)));
+                    
         await Promise.all(promises);
     }
 
     static async getAndExecuteCommand(msg: any, resources: any) {
+        let updatedResources = resources;
         try {
             let messageInfo = {
                 exchange: msg.fields.exchange,
@@ -52,11 +53,13 @@ class Processor {
                 Processor.dctCommand.set(commandInfo.name, command);
             }
 
-            await command.executeCommand(commandInfo.args, messageInfo, resources);
+            updatedResources = await command.executeCommand(commandInfo.args, messageInfo, resources);
         }
         catch (err) {
             console.log(err);
         }
+
+        return updatedResources;
     }
 }
 
