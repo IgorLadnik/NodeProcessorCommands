@@ -25,13 +25,21 @@ export async function executeCommand(args: any, resources: any, itemInfo: ItemIn
         // Establish connection to SQL server since it is not available at the moment
         updatedResources = await callback(new CommandInfo('cmdSqlConnect'), resources);
 
-    setTimeout(() => { 
-            let publisher: Publisher = resources.publishers.get(itemInfo.queueName);
-            publisher.publish<CommandInfo>(itemInfo.queueName, 
-                    new CommandInfo(thisCommandName, recordset[itemInfo.deliveryTag % recordset.length]));
-        
-    }, 1000);
+    setTimeout(() => //{
+            // let publisher: Publisher = resources.publishers.get(itemInfo.queueName);
+            // publisher.publish<CommandInfo>(itemInfo.queueName,
+            //         new CommandInfo(thisCommandName, recordset[itemInfo.deliveryTag % recordset.length]));
+
+            createAndEnqueueNewCommand(itemInfo.queueName, thisCommandName, updatedResources,
+                recordset[itemInfo.deliveryTag % recordset.length]), 1000);
+
+        //}, 1000);
         
     return updatedResources;
+}
+
+function createAndEnqueueNewCommand(queueName: string, commandName: string, resources: any, args: any) {
+    let publisher: Publisher = resources.publishers.get(queueName);
+    publisher.publish<CommandInfo>(queueName, new CommandInfo(commandName, args));
 }
 
