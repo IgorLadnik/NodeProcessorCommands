@@ -5,6 +5,8 @@ import { ItemInfo } from './models/itemInfo';
 
 export class Processor {
     static commandsDir = './commands/';
+    static parallelCmdName = '_cmdParallel';
+
     static commands = new Dictionary<string, any>();
     queueNames: Array<string>;
     publishers = new Dictionary<string, Publisher>();
@@ -24,27 +26,52 @@ export class Processor {
         let promises = new Array<Promise<Consumer>>();
         for (let i = 0; i < this.queueNames.length; i++)
             promises.push(Consumer.start(this.queueNames[i], async (item: any) =>
-                this.resources = await Processor.getCommandFromQueueItemAndExecute(this.resources, item)));
+                this.resources = await this.getCommandFromQueueItemAndExecute(item)));
                     
         await Promise.all(promises);
     }
 
-    static async getCommandFromQueueItemAndExecute(resources: any, item: any): Promise<any> {
-        let updatedResources = resources;
+    async getCommandFromQueueItemAndExecute(item: any): Promise<any> {
+        let updatedResources = this.resources;
         let _ = item.fields;
         try {
             let itemInfo = new ItemInfo(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
             let commandInfo: CommandInfo = JSON.parse(item.content.toString());
-            updatedResources = await Processor.getAndExecuteCommand(commandInfo, resources, itemInfo);
+
+            if (commandInfo.name === Processor.parallelCmdName)
+                await this.executeParallel(commandInfo.args);
+            else
+                updatedResources = await Processor.getAndExecuteCommand(commandInfo, this.resources, itemInfo);
         }
         catch (err) {
             console.log(err);
         }
 
+        if (!updatedResources)
+            updatedResources = this.resources;
+
         return updatedResources;
     }
 
-    static async getAndExecuteCommand(commandInfo: CommandInfo, resources: any, itemInfo: any = undefined): Promise<any> {
+    async executeParallel(args: any): Promise<void> {
+        let commandInfos: Array<CommandInfo> = args;
+        let promises: Array<Promise<any>> = [];
+        if (!commandInfos)
+            return;
+
+        try {
+            for (let i = 0; i < commandInfos.length; i++)
+                promises.push(Processor.getAndExecuteCommand(commandInfos[i], this.resources));
+
+            /*let arrUpdateedResources: Array<any> = */await Promise.all(promises);
+        }
+        catch (err) {
+            console.log(err);
+        }
+    }
+
+    static async getAndExecuteCommand(commandInfo: CommandInfo, resources: any, itemInfo: any = undefined)
+        : Promise<any> {
         let updatedResources = resources;
         try {
             let command: any = Processor.commands.get(commandInfo.name);
@@ -53,18 +80,14 @@ export class Processor {
                 Processor.commands.set(commandInfo.name, command);
             }
 
-            updatedResources = await command.executeCommand(commandInfo.args, resources, itemInfo, 
-                                                Processor.getAndExecuteCommandAsCallback);
+            updatedResources =
+                await command.executeCommand(commandInfo.args, resources, itemInfo, Processor.getAndExecuteCommand);
         }
         catch (err) {
             console.log(err);
         }
 
         return updatedResources;
-    }
-
-    static async getAndExecuteCommandAsCallback(commandInfo: CommandInfo, resources: any): Promise<any> {
-        return Processor.getAndExecuteCommand(commandInfo, resources);
     }
 }
 

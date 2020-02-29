@@ -41,19 +41,20 @@ export async function executeCommand(args: any, resources: any, itemInfo: ItemIn
 
     // Some more business logic
 
-    // Create and enqueue new command, if required, sync...
-    createAndEnqueueNewCommand(updatedResources);
+    // Create and enqueue new command, if required, either in sync...
+    await createAndEnqueueNewCommand(updatedResources);
 
-    // ... of async
-    setTimeout(() => createAndEnqueueNewCommand(updatedResources), 1000);
+    // ... or in async manner
+    setTimeout(async () => await createAndEnqueueNewCommand(updatedResources), 1);
 
+    // It is CRUCIAL not to remove resources and return set of resources
     return updatedResources;
 }
 
-function createAndEnqueueNewCommand(resorces: any) {
+async function createAndEnqueueNewCommand(resources: any) {
     let queueName = '...';
     let newCommandName = 'cmd...';
     let newCommandArgs =  { arg0: 'arg0', arg1: 'arg1' };
-    let publisher: Publisher = resorces.publishers.get(queueName);
-    publisher.publish<CommandInfo>(queueName, new CommandInfo(newCommandName, newCommandArgs));
+    let publisher: Publisher = resources.publishers.get(queueName);
+    await publisher.publish<CommandInfo>(queueName, new CommandInfo(newCommandName, newCommandArgs));
 }
