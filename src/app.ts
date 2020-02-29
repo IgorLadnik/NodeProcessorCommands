@@ -6,14 +6,14 @@ import { ItemInfo } from './itemInfo';
 class Processor {
     static commandsDir = './commands/';
     static connUrl = 'amqp://localhost';
-    static dctCommand = new Dictionary<string, any>();
+    static commands = new Dictionary<string, any>();
     queueNames: Array<string>;
     publishers = new Dictionary<string, Publisher>();
-    resorces: any;
+    resources: any;
 
     constructor(...queueNames: Array<string>) {
         this.queueNames = queueNames;
-        this.resorces = { publishers: this.publishers };
+        this.resources = { publishers: this.publishers };
     }
 
     async createPublishers() {
@@ -25,18 +25,18 @@ class Processor {
         let promises = new Array<Promise<Consumer>>();
         for (let i = 0; i < this.queueNames.length; i++)
             promises.push(Consumer.start(Processor.connUrl, this.queueNames[i], async (item: any) => 
-                this.resorces = await Processor.getCommandFromQueueItemAndExcute(item, this.resorces)));
+                this.resources = await Processor.getCommandFromQueueItemAndExecute(this.resources, item)));
                     
         await Promise.all(promises);
     }
 
-    static async getCommandFromQueueItemAndExcute(item: any, resources: any): Promise<any> {
+    static async getCommandFromQueueItemAndExecute(resources: any, item: any): Promise<any> {
         let updatedResources = resources;
         let _ = item.fields;
         try {
             let itemInfo = new ItemInfo(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
             let commandInfo: CommandInfo = JSON.parse(item.content.toString());
-            updatedResources = await Processor.getAndExecuteCommand(commandInfo, itemInfo, resources);
+            updatedResources = await Processor.getAndExecuteCommand(commandInfo, resources, itemInfo);
         }
         catch (err) {
             console.log(err);
@@ -45,16 +45,16 @@ class Processor {
         return updatedResources;
     }
 
-    static async getAndExecuteCommand(commandInfo: CommandInfo, itemInfo: any, resources: any): Promise<any> {
+    static async getAndExecuteCommand(commandInfo: CommandInfo, resources: any, itemInfo: any = undefined): Promise<any> {
         let updatedResources = resources;
         try {
-            let command: any = Processor.dctCommand.get(commandInfo.name);
+            let command: any = Processor.commands.get(commandInfo.name);
             if (!command) {
                 command = await import(`${Processor.commandsDir}${commandInfo.name}`);
-                Processor.dctCommand.set(commandInfo.name, command);
+                Processor.commands.set(commandInfo.name, command);
             }
 
-            updatedResources = await command.executeCommand(commandInfo.args, itemInfo, resources, 
+            updatedResources = await command.executeCommand(commandInfo.args, resources, itemInfo, 
                                                 Processor.getAndExecuteCommandAsCallback);
         }
         catch (err) {
@@ -65,18 +65,18 @@ class Processor {
     }
 
     static async getAndExecuteCommandAsCallback(commandInfo: CommandInfo, resources: any): Promise<any> {
-        return Processor.getAndExecuteCommand(commandInfo, null, resources);
+        return Processor.getAndExecuteCommand(commandInfo, resources);
     }
 }
 
 (async function main() {
-    const queueName: string = 'il-01';
+    const queueNames = ['il-01', 'il-02'];
 
-    let processor = new Processor(queueName);
+    let processor = new Processor(...queueNames);
     await Promise.all([processor.startConsumers(), processor.createPublishers()]);
 
     setTimeout(() => 
-        processor.publishers.get(queueName)
-            .publish<CommandInfo>(queueName, new CommandInfo('cmdFirst', {a: 'aaa', n: 1})),
+        processor.publishers.get(queueNames[0])
+            .publish<CommandInfo>(queueNames[0], new CommandInfo('cmdFirst', {a: 'aaa', n: 1})),
         1000);
 })();  

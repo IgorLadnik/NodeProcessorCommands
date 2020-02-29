@@ -2,7 +2,7 @@ import { CommandInfo } from '../commandInfo';
 import { Publisher } from '../rabbitmq';
 import { ItemInfo } from '../itemInfo';
 
-export async function executeCommand(args: any, itemInfo: ItemInfo, resources: any, callback: any): Promise<any> { 
+export async function executeCommand(args: any, resources: any, itemInfo: ItemInfo, callback: any): Promise<any> { 
     const thisCommandName = 'cmdFirst';
     console.log(`${thisCommandName}: args: ${JSON.stringify(args)} | itemInfo: ${JSON.stringify(itemInfo)}`);
 

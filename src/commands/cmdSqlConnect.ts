@@ -1,7 +1,7 @@
 import { SqlServerProvider } from '../SqlServerProvider';
 
-export async function executeCommand(args: any, itemInfo: any, resources: any): Promise<any> { 
-    console.log(`cmdSqlConnect: args: ${JSON.stringify(args)} | messageInfo: ${JSON.stringify(itemInfo)}`);
+export async function executeCommand(args: any, resources: any): Promise<any> { 
+    console.log(`cmdSqlConnect: args: ${JSON.stringify(args)}`);
 
     let updateResources = resources;
     let sql = new SqlServerProvider({server: 'IGORMAIN\\MSSQLSERVER01', database: 'PetsDb'}); 
