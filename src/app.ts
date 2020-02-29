@@ -1,6 +1,6 @@
 import { Publisher, Consumer } from './rabbitmq';
 import { Dictionary } from 'dictionaryjs';
-import { Command } from './command';
+import { CommandInfo } from './commandInfo';
 //import { SqlServerHelper } from './SqlServerHelper';
 
 class Processor {
@@ -28,32 +28,52 @@ class Processor {
         
         let promises = new Array<Promise<Consumer>>();
         for (let i = 0; i < this.queueNames.length; i++)
-            promises.push(Consumer.start(Processor.connUrl, this.queueNames[i], async (msg: any) => 
-                this.resorces = await Processor.getAndExecuteCommand(msg, this.resorces)));
+            promises.push(Consumer.start(Processor.connUrl, this.queueNames[i], async (item: any) => 
+                this.resorces = await Processor.getCommandFromQueueItemAndExcute(item, this.resorces)));
                     
         await Promise.all(promises);
     }
 
-    static async getAndExecuteCommand(msg: any, resources: any) {
+    static async getCommandFromQueueItemAndExcute(item: any, resources: any): Promise<any> {
         let updatedResources = resources;
         try {
-            let messageInfo = {
-                exchange: msg.fields.exchange,
-                queueName: msg.fields.routingKey,
-                consumerTag: msg.fields.consumerTag,
-                deliveryTag: msg.fields.deliveryTag,
-                redelivered: msg.fields.redelivered
+            let itemInfo = {
+                exchange: item.fields.exchange,
+                queueName: item.fields.routingKey,
+                consumerTag: item.fields.consumerTag,
+                deliveryTag: item.fields.deliveryTag,
+                redelivered: item.fields.redelivered
             };
 
-            let commandInfo = JSON.parse(msg.content.toString());
+            let commandInfo: CommandInfo = JSON.parse(item.content.toString());
 
+            updatedResources = await Processor.getAndExecuteCommand(commandInfo, itemInfo, resources);
+
+            // let command: any = Processor.dctCommand.get(commandInfo.name);
+            // if (!command) {
+            //     command = await import(`${Processor.commandsDir}${commandInfo.name}`);
+            //     Processor.dctCommand.set(commandInfo.name, command);
+            // }
+
+            // updatedResources = await command.executeCommand(commandInfo.args, itemInfo, resources);
+        }
+        catch (err) {
+            console.log(err);
+        }
+
+        return updatedResources;
+    }
+
+    static async getAndExecuteCommand(commandInfo: CommandInfo, itemInfo: any, resources: any): Promise<any> {
+        let updatedResources = resources;
+        try {
             let command: any = Processor.dctCommand.get(commandInfo.name);
             if (!command) {
                 command = await import(`${Processor.commandsDir}${commandInfo.name}`);
                 Processor.dctCommand.set(commandInfo.name, command);
             }
 
-            updatedResources = await command.executeCommand(commandInfo.args, messageInfo, resources);
+            updatedResources = await command.executeCommand(commandInfo.args, itemInfo, resources, Processor.getAndExecuteCommand);
         }
         catch (err) {
             console.log(err);
@@ -65,13 +85,12 @@ class Processor {
 
 (async function main() {
     const queueName: string = 'il-01';
-    let commandName = 'cmdFirst';
 
     let processor = new Processor(queueName);
     await Promise.all([processor.startConsumers(), processor.createPublishers()]);
 
     setTimeout(() => 
         processor.publishers.get(queueName)
-            .publish<Command>(queueName, new Command(commandName, {a: 'igor', n: 1})),
+            .publish<CommandInfo>(queueName, new CommandInfo('cmdFirst', {a: 'aaa', n: 1})),
         1000);
 })();  

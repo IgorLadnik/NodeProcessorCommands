@@ -1,10 +1,10 @@
 import { SqlServerHelper } from '../SqlServerHelper';
 
-export async function executeCommand(args: any, messageInfo: any, resources: any): Promise<any> { 
-    console.log(`cmdSqlConnect: args: ${JSON.stringify(args)} | messageInfo: ${JSON.stringify(messageInfo)}`);
+export async function executeCommand(args: any, itemInfo: any, resources: any): Promise<any> { 
+    console.log(`cmdSqlConnect: args: ${JSON.stringify(args)} | messageInfo: ${JSON.stringify(itemInfo)}`);
 
     let updateResources = resources;
-    let sqlServerHelper = new SqlServerHelper(args); 
+    let sqlServerHelper = new SqlServerHelper({server: 'IGORMAIN\\MSSQLSERVER01', database: 'PetsDb'}); 
     try {
         await sqlServerHelper.connect();
         updateResources.sqlServerHelper = sqlServerHelper;

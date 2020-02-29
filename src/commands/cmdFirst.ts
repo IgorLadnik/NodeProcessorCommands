@@ -1,8 +1,8 @@
-import { Command } from '../command'; 
+import { CommandInfo } from '../commandInfo'; 
 import { Publisher } from '../rabbitmq';
 
-export async function executeCommand(args: any, messageInfo: any, resources: any): Promise<any> { 
-    console.log(`cmdFirst: args: ${JSON.stringify(args)} | messageInfo: ${JSON.stringify(messageInfo)}`);
+export async function executeCommand(args: any, itemInfo: any, resources: any, callback: any): Promise<any> { 
+    console.log(`cmdFirst: args: ${JSON.stringify(args)} | itemInfo: ${JSON.stringify(itemInfo)}`);
 
     let recordset: Array<any> = [];
     let isSqlConnected = false;
@@ -16,16 +16,18 @@ export async function executeCommand(args: any, messageInfo: any, resources: any
             console.log(err);
         }
     }
-
-    let publisher: Publisher = resources.publishers.get(messageInfo.queueName);
-        
+       
+    let updatedResources = resources; 
     if (!isSqlConnected)
-        publisher.publish<Command>(messageInfo.queueName, new Command('cmdSqlConnect', {server: 'IGORMAIN\\MSSQLSERVER01', database: 'PetsDb'}));
+        updatedResources = await callback(new CommandInfo('cmdSqlConnect', null), null, resources);
 
-    setTimeout(() => 
-            publisher.publish<Command>(messageInfo.queueName, new Command('cmdFirst', recordset[messageInfo.deliveryTag % recordset.length]))
-        , 1000);
+    setTimeout(() => { 
+            let publisher: Publisher = resources.publishers.get(itemInfo.queueName);
+            publisher.publish<CommandInfo>(itemInfo.queueName, 
+                    new CommandInfo('cmdFirst', recordset[itemInfo.deliveryTag % recordset.length]));
         
-    return resources;
+    }, 1000);
+        
+    return updatedResources;
 }
 
