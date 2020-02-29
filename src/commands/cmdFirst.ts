@@ -1,6 +1,6 @@
-import { CommandInfo } from '../commandInfo'; 
-import { Publisher } from '../rabbitmq';
-import { ItemInfo } from '../itemInfo';
+import { CommandInfo } from '../models/commandInfo';
+import { ItemInfo } from '../models/itemInfo';
+import { Publisher } from '../infrastructure/rabbitmqProvider';
 
 export async function executeCommand(args: any, resources: any, itemInfo: ItemInfo, callback: any): Promise<any> { 
     const thisCommandName = 'cmdFirst';

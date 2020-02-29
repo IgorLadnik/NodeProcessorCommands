@@ -1,4 +1,4 @@
-import { SqlServerProvider } from '../SqlServerProvider';
+import { SqlServerProvider } from '../infrastructure/SqlServerProvider';
 
 export async function executeCommand(args: any, resources: any): Promise<any> { 
     console.log(`cmdSqlConnect: args: ${JSON.stringify(args)}`);
