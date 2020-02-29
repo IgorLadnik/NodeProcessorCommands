@@ -5,7 +5,6 @@ import { ItemInfo } from './models/itemInfo';
 
 export class Processor {
     static commandsDir = './commands/';
-    static connUrl = 'amqp://localhost';
     static commands = new Dictionary<string, any>();
     queueNames: Array<string>;
     publishers = new Dictionary<string, Publisher>();
@@ -18,13 +17,13 @@ export class Processor {
 
     async createPublishers() {
         for (let i = 0; i < this.queueNames.length; i++)
-            this.publishers.set(this.queueNames[i], await Publisher.start(Processor.connUrl, this.queueNames[i], true));
+            this.publishers.set(this.queueNames[i], await Publisher.start(this.queueNames[i], true));
     }
 
     async startConsumers() {      
         let promises = new Array<Promise<Consumer>>();
         for (let i = 0; i < this.queueNames.length; i++)
-            promises.push(Consumer.start(Processor.connUrl, this.queueNames[i], async (item: any) => 
+            promises.push(Consumer.start(this.queueNames[i], async (item: any) =>
                 this.resources = await Processor.getCommandFromQueueItemAndExecute(this.resources, item)));
                     
         await Promise.all(promises);

@@ -2,6 +2,7 @@ let amqp = require('amqplib');
 //import { Buffer } from 'buffer';
 
 class Connection {
+    static connUrl = 'amqp://localhost';
     channel: any; 
 
     async connect(connUrl: string): Promise<void> {
@@ -49,10 +50,10 @@ export class Publisher extends Connection {
         }
     }
 
-    static async start(connUrl: string, queueName: string, shouldPurge: boolean): Promise<Publisher> {
+    static async start(queueName: string, shouldPurge: boolean): Promise<Publisher> {
         let publisher = new Publisher()
         try {
-            publisher = await publisher.createChannel(connUrl);
+            publisher = await publisher.createChannel(Connection.connUrl);
         }
         catch (err) {
             console.log(err);
@@ -67,7 +68,7 @@ export class Publisher extends Connection {
 
 export class Consumer extends Connection {
     async createChannel(connUrl: string): Promise<Consumer> {
-        let conn: any = await super.connect(connUrl);
+        let conn: any = await super.connect(Connection.connUrl);
         try {
             this.channel = await conn.createChannel();
             await this.channel.prefetch();
@@ -93,8 +94,8 @@ export class Consumer extends Connection {
         return this;
     }
     
-    static async start(connUrl: string, queueName: string, processCallback: any): Promise<Consumer> {
-        let consumer = await new Consumer().createChannel(connUrl); 
+    static async start(queueName: string, processCallback: any): Promise<Consumer> {
+        let consumer = await new Consumer().createChannel(Connection.connUrl);
         try {
             await consumer.startConsume(queueName, processCallback);
         }
