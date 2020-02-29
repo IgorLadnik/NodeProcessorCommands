@@ -1,7 +1,7 @@
 import { Publisher, Consumer } from './rabbitmq';
 import { Dictionary } from 'dictionaryjs';
 import { CommandInfo } from './commandInfo';
-//import { SqlServerHelper } from './SqlServerHelper';
+import { ItemInfo } from './itemInfo';
 
 class Processor {
     static commandsDir = './commands/';
@@ -9,7 +9,6 @@ class Processor {
     static dctCommand = new Dictionary<string, any>();
     queueNames: Array<string>;
     publishers = new Dictionary<string, Publisher>();
-    //sqlServerHelper = new SqlServerHelper(); 
     resorces: any;
 
     constructor(...queueNames: Array<string>) {
@@ -22,10 +21,7 @@ class Processor {
             this.publishers.set(this.queueNames[i], await Publisher.start(Processor.connUrl, this.queueNames[i], true));
     }
 
-    async startConsumers() {
-        // await this.sqlServerHelper.connect();
-        // this.resorces.sqlServerHelper = this.sqlServerHelper; 
-        
+    async startConsumers() {      
         let promises = new Array<Promise<Consumer>>();
         for (let i = 0; i < this.queueNames.length; i++)
             promises.push(Consumer.start(Processor.connUrl, this.queueNames[i], async (item: any) => 
@@ -36,26 +32,11 @@ class Processor {
 
     static async getCommandFromQueueItemAndExcute(item: any, resources: any): Promise<any> {
         let updatedResources = resources;
+        let _ = item.fields;
         try {
-            let itemInfo = {
-                exchange: item.fields.exchange,
-                queueName: item.fields.routingKey,
-                consumerTag: item.fields.consumerTag,
-                deliveryTag: item.fields.deliveryTag,
-                redelivered: item.fields.redelivered
-            };
-
+            let itemInfo = new ItemInfo(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
             let commandInfo: CommandInfo = JSON.parse(item.content.toString());
-
             updatedResources = await Processor.getAndExecuteCommand(commandInfo, itemInfo, resources);
-
-            // let command: any = Processor.dctCommand.get(commandInfo.name);
-            // if (!command) {
-            //     command = await import(`${Processor.commandsDir}${commandInfo.name}`);
-            //     Processor.dctCommand.set(commandInfo.name, command);
-            // }
-
-            // updatedResources = await command.executeCommand(commandInfo.args, itemInfo, resources);
         }
         catch (err) {
             console.log(err);
@@ -73,13 +54,18 @@ class Processor {
                 Processor.dctCommand.set(commandInfo.name, command);
             }
 
-            updatedResources = await command.executeCommand(commandInfo.args, itemInfo, resources, Processor.getAndExecuteCommand);
+            updatedResources = await command.executeCommand(commandInfo.args, itemInfo, resources, 
+                                                Processor.getAndExecuteCommandAsCallback);
         }
         catch (err) {
             console.log(err);
         }
 
         return updatedResources;
+    }
+
+    static async getAndExecuteCommandAsCallback(commandInfo: CommandInfo, resources: any): Promise<any> {
+        return Processor.getAndExecuteCommand(commandInfo, null, resources);
     }
 }
 

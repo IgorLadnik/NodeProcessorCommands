@@ -1,6 +1,6 @@
 const sql = require('mssql/msnodesqlv8');
 
-export class SqlServerHelper {
+export class SqlServerProvider {
     config: any;
 
     constructor(config: any) {
