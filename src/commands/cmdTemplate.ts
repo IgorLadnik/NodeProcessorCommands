@@ -55,6 +55,5 @@ async function createAndEnqueueNewCommand(resources: any) {
     let queueName = '...';
     let newCommandName = 'cmd...';
     let newCommandArgs =  { arg0: 'arg0', arg1: 'arg1' };
-    let publisher: Publisher = resources.publishers.get(queueName);
-    await publisher.publish<CommandInfo>(queueName, new CommandInfo(newCommandName, newCommandArgs));
+    await resources.processor.publish(queueName, new CommandInfo(newCommandName, newCommandArgs), false);
 }
