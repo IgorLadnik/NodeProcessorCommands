@@ -1,6 +1,5 @@
 import { CommandInfo } from '../models/commandInfo';
 import { ItemInfo } from '../models/itemInfo';
-import { Publisher } from '../infrastructure/rabbitmqProvider';
 
 export async function executeCommand(args: any, resources: any, itemInfo: ItemInfo, callback: any): Promise<any> { 
     const thisCommandName = 'cmdFirst';
@@ -25,14 +24,15 @@ export async function executeCommand(args: any, resources: any, itemInfo: ItemIn
         // Establish connection to SQL server since it is not available at the moment
         updatedResources = await callback(new CommandInfo('cmdSqlConnect'), resources);
 
-    setTimeout(async () => await createAndEnqueueNewCommand(itemInfo.queueName, thisCommandName,
-        updatedResources, recordset[itemInfo.deliveryTag % recordset.length]), 1000);
+    setTimeout(async () =>
+        await updatedResources.processor.publish(itemInfo.queueName,
+            new CommandInfo(thisCommandName, recordset[itemInfo.deliveryTag % recordset.length]), false)
+    , 1000);
+
+    // await updatedResources.processor.publish(itemInfo.queueName,
+    //     new CommandInfo(thisCommandName, recordset[itemInfo.deliveryTag % recordset.length]), false);
 
     return updatedResources;
 }
 
-async function createAndEnqueueNewCommand(queueName: string, commandName: string, resources: any, args: any) {
-    let publisher: Publisher = resources.publishers.get(queueName);
-    await publisher.publish<CommandInfo>(queueName, new CommandInfo(commandName, args));
-}
 

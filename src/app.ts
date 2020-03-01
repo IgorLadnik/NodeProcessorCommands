@@ -8,18 +8,20 @@ import { CommandInfo } from './models/commandInfo';
     await Promise.all([processor.startConsumers(), processor.createPublishers()]);
 
     setTimeout(() =>
-        processor.publishers.get(queueNames[0])
-            .publish<CommandInfo>(queueNames[0], new CommandInfo('cmdFirst', {a: 'aaa', n: 1})),
+        processor.publishMany(queueNames[0],
+                [
+                    new CommandInfo('cmdFirst', {a: 'aaa', n: 1}),
+                    new CommandInfo('cmdFirst', {a: 'qqq', n: 1})
+                ],
+            false),
         1000);
 
     setInterval(() =>
-        processor.publishers.get(queueNames[0])
-            .publish<CommandInfo>(queueNames[0],
-                new CommandInfo(Processor.parallelCmdName,
-                    [
-                        new CommandInfo('cmdTestP', {order: 1}),
-                        new CommandInfo('cmdTestP', {order: 2}),
-                        new CommandInfo('cmdTestP', {order: 3})
-                    ])),
-        3000);
-})();  
+            processor.publishParallel(queueNames[0],
+                        [
+                            new CommandInfo('cmdTestP', {order: 1}),
+                            new CommandInfo('cmdTestP', {order: 2}),
+                            new CommandInfo('cmdTestP', {order: 3})
+                        ], false),
+        370);
+})();

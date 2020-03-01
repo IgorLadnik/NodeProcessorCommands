@@ -38,7 +38,15 @@ export class Publisher extends Connection {
     }
 
     async publish<T>(queueName: string, t: T, persistent: boolean = false): Promise<void> {
-        return await this.publishAny(queueName, Buffer.from(JSON.stringify(t)), persistent);
+        await this.publishAny(queueName, Buffer.from(JSON.stringify(t)), persistent);
+    }
+
+    async publishMany<T>(queueName: string, arrT: Array<T>, persistent: boolean = false): Promise<void> {
+        let promises = new Array<Promise<void>>();
+        for (let i = 0; i < arrT.length; i++)
+            promises.push(this.publish<T>(queueName, arrT[i], persistent));
+
+        await Promise.all(promises);
     }
 
     async purge(queueName: string): Promise<void> {

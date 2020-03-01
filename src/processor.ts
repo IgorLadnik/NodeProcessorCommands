@@ -3,7 +3,13 @@ import { Dictionary } from 'dictionaryjs';
 import { CommandInfo } from './models/commandInfo';
 import { ItemInfo } from './models/itemInfo';
 
-export class Processor {
+export interface IProcessor {
+    publish(queueName: string, commandInfo: CommandInfo, persistent: boolean): Promise<void>;
+    publishMany(queueName: string, arrCommandInfo: Array<CommandInfo>, persistent: boolean): Promise<void>;
+    publishParallel(queueName: string, arrCommandInfo: Array<CommandInfo>, persistent: boolean) : Promise<void>;
+}
+
+export class Processor implements IProcessor {
     static commandsDir = './commands/';
     static parallelCmdName = '_cmdParallel';
 
@@ -14,7 +20,8 @@ export class Processor {
 
     constructor(...queueNames: Array<string>) {
         this.queueNames = queueNames;
-        this.resources = { publishers: this.publishers };
+        //this.resources = { publishers: this.publishers };
+        this.resources = { processor: this as IProcessor };
     }
 
     async createPublishers() {
@@ -31,13 +38,27 @@ export class Processor {
         await Promise.all(promises);
     }
 
+    async publish(queueName: string, commandInfo: CommandInfo, persistent: boolean)
+            : Promise<void> {
+        await this.publishers.get(queueName).publish<CommandInfo>(queueName, commandInfo, persistent);
+    }
+
+    async publishMany(queueName: string, arrCommandInfo: Array<CommandInfo>, persistent: boolean)
+            : Promise<void> {
+        await this.publishers.get(queueName).publishMany<CommandInfo>(queueName, arrCommandInfo, persistent);
+    }
+
+    async publishParallel(queueName: string, arrCommandInfo: Array<CommandInfo>, persistent: boolean)
+            : Promise<void> {
+        await this.publish(queueName, new CommandInfo(Processor.parallelCmdName, arrCommandInfo), persistent);
+    }
+
     async getCommandFromQueueItemAndExecute(item: any): Promise<any> {
         let updatedResources = this.resources;
         let _ = item.fields;
         try {
             let itemInfo = new ItemInfo(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
             let commandInfo: CommandInfo = JSON.parse(item.content.toString());
-
             if (commandInfo.name === Processor.parallelCmdName)
                 await this.executeParallel(commandInfo.args);
             else
