@@ -8,18 +8,32 @@ export class Processor implements IProcessor {
     static commandsDir = '../commands/';
     static parallelCmdName = '_cmdParallel';
 
-    static commands = new Dictionary<string, any>();
+    commands = new Dictionary<string, any>();
     queueNames: Array<string>;
     publishers = new Dictionary<string, Publisher>();
-    resources: any;
+    resources = new Dictionary<string, any>();
 
     constructor(...queueNames: Array<string>) {
         this.queueNames = queueNames;
-        this.resources = { processor: this as IProcessor };
+        //this.resources = { processor: this as IProcessor };
     }
 
     getQueueNames(): Array<string> {
         return this.queueNames;
+    }
+
+    getResource(resourceName: string): any {
+        try {
+            return this.resources.get(resourceName);
+        }
+        catch (err) {
+            console.log(`resource \"resourceName\" is not available`);
+            return undefined;
+        }
+    }
+
+    addResource(resourceName: string, resource: any): void {
+        this.resources.set(resourceName, resource);
     }
 
     async createPublishers() {
@@ -31,7 +45,7 @@ export class Processor implements IProcessor {
         let promises = new Array<Promise<Consumer>>();
         for (let i = 0; i < this.queueNames.length; i++)
             promises.push(Consumer.start(this.queueNames[i], async (item: any) =>
-                this.resources = await this.getCommandFromQueueItemAndExecute(item)));
+                await this.getCommandFromQueueItemAndExecute(item)));
                     
         await Promise.all(promises);
     }
@@ -51,8 +65,7 @@ export class Processor implements IProcessor {
         await this.publish(queueName, new CommandInfo(Processor.parallelCmdName, arrCommandInfo), persistent);
     }
 
-    async getCommandFromQueueItemAndExecute(item: any): Promise<any> {
-        let updatedResources = this.resources;
+    async getCommandFromQueueItemAndExecute(item: any): Promise<void> {
         let _ = item.fields;
         try {
             let itemInfo = new ItemInfo(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
@@ -60,16 +73,11 @@ export class Processor implements IProcessor {
             if (commandInfo.name === Processor.parallelCmdName)
                 await this.executeParallel(commandInfo.args);
             else
-                updatedResources = await Processor.getAndExecuteCommand(commandInfo, this.resources, itemInfo);
+                await this.getAndExecuteCommand(commandInfo, itemInfo);
         }
         catch (err) {
             console.log(err);
         }
-
-        if (!updatedResources)
-            updatedResources = this.resources;
-
-        return updatedResources;
     }
 
     async executeParallel(args: any): Promise<void> {
@@ -80,33 +88,28 @@ export class Processor implements IProcessor {
 
         try {
             for (let i = 0; i < commandInfos.length; i++)
-                promises.push(Processor.getAndExecuteCommand(commandInfos[i], this.resources));
+                promises.push(this.getAndExecuteCommand(commandInfos[i], undefined));
 
-            /*let arrUpdateedResources: Array<any> = */await Promise.all(promises);
+            await Promise.all(promises);
         }
         catch (err) {
             console.log(err);
         }
     }
 
-    static async getAndExecuteCommand(commandInfo: CommandInfo, resources: any, itemInfo: any = undefined)
-            : Promise<any> {
-        let updatedResources = resources;
+    async getAndExecuteCommand(commandInfo: CommandInfo, itemInfo: any): Promise<void> {
         try {
-            let command: any = Processor.commands.get(commandInfo.name);
+            let command: any = this.commands.get(commandInfo.name);
             if (!command) {
                 command = await import(`${Processor.commandsDir}${commandInfo.name}`);
-                Processor.commands.set(commandInfo.name, command);
+                this.commands.set(commandInfo.name, command);
             }
 
-            updatedResources =
-                await command.executeCommand(commandInfo.args, resources, itemInfo, Processor.getAndExecuteCommand);
+            await command.executeCommand(commandInfo.args, this as IProcessor, itemInfo);
         }
         catch (err) {
             console.log(err);
         }
-
-        return updatedResources;
     }
 }
 

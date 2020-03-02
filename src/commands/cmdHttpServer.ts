@@ -1,17 +1,17 @@
 import { ItemInfo } from '../models/itemInfo';
+import {IProcessor} from "../processor/iprocessor";
 const express = require('express');
 
-export async function executeCommand(args: any, resources: any, itemInfo: ItemInfo, callback: any): Promise<any> {
+export async function executeCommand(args: any, processor: IProcessor, itemInfo: ItemInfo): Promise<void> {
     const thisCommandName = 'cmdHttpServer';
 
-    const server = express();
+    const httpServer = express();
     const port = 19019;
     console.log(`${thisCommandName}: port = ${port}`);
 
-    let updatedResources = resources;
-    server.get('/', (req: any, res: any) => {
+    httpServer.get('/', (req: any, res: any) => {
         try {
-            res.send('Hello World!')
+            res.send('Hello World!');
         }
         catch (err) {
             console.log(err);
@@ -19,12 +19,10 @@ export async function executeCommand(args: any, resources: any, itemInfo: ItemIn
     });
 
     try {
-        server.listen(port, () => console.log(`HTTP Server is listening on port ${port}`));
-        updatedResources.httpServer = server;
+        httpServer.listen(port, () => console.log(`HTTP Server is listening on port ${port}`));
+        processor.addResource('httpServer', httpServer);
     }
     catch (err) {
         console.log(err);
     }
-
-    return updatedResources;
 }

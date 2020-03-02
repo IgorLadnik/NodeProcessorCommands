@@ -1,38 +1,42 @@
 import { CommandInfo } from '../models/commandInfo';
 import { ItemInfo } from '../models/itemInfo';
+import { IProcessor } from '../processor/iprocessor';
 
-export async function executeCommand(args: any, resources: any, itemInfo: ItemInfo, callback: any): Promise<any> { 
+export async function executeCommand(args: any, processor: IProcessor, itemInfo: ItemInfo): Promise<void> {
     const thisCommandName = 'cmdFirst';
     console.log(`${thisCommandName}: args: ${JSON.stringify(args)} | itemInfo: ${JSON.stringify(itemInfo)}`);
 
     let recordset: Array<any> = [];
-    let isSqlConnected = false;
 
-    if (resources.sql) {
+    let sql = processor.getResource('sql');
+    if (sql === undefined) {
         try {
-            recordset = await resources.sql.simpleQuery('*', 'Pets');
-            isSqlConnected = true;
+            await processor.getAndExecuteCommand(new CommandInfo('cmdSqlConnect'), undefined);
         }
         catch (err) {
-            // SQL server connection is not available
             console.log(err);
         }
     }
-       
-    let updatedResources = resources; 
-    if (!isSqlConnected)
-        // Establish connection to SQL server since it is not available at the moment
-        updatedResources = await callback(new CommandInfo('cmdSqlConnect'), resources);
+
+    sql = processor.getResource('sql');
+    if (sql !== undefined) {
+        try {
+            recordset = await sql.simpleQuery('*', 'Pets');
+        } catch (err) {
+            console.log(err);
+        }
+    }
+    else {
+        console.log('No connection to SQL Server');
+    }
 
     setTimeout(async () =>
-        await updatedResources.processor.publish(itemInfo.queueName,
+        await processor.publish(itemInfo.queueName,
             new CommandInfo(thisCommandName, recordset[itemInfo.deliveryTag % recordset.length]), false)
     , 1000);
 
-    // await updatedResources.processor.publish(itemInfo.queueName,
+    // await processor.publish(itemInfo.queueName,
     //     new CommandInfo(thisCommandName, recordset[itemInfo.deliveryTag % recordset.length]), false);
-
-    return updatedResources;
 }
 
 

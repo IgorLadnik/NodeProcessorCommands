@@ -6,5 +6,5 @@ import { CommandInfo } from './models/commandInfo';
 
     let processor = new Processor(...queueNames);
     await Promise.all([processor.startConsumers(), processor.createPublishers()]);
-    await Processor.getAndExecuteCommand(new CommandInfo('cmdInitial'), processor.resources);
+    await processor.getAndExecuteCommand(new CommandInfo('cmdInitial'), undefined);
 })();

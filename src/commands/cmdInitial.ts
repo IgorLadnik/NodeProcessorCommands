@@ -1,13 +1,12 @@
 import { CommandInfo } from '../models/commandInfo';
 import { ItemInfo } from '../models/itemInfo';
+import {IProcessor} from "../processor/iprocessor";
 
-export async function executeCommand(args: any, resources: any, itemInfo: ItemInfo, callback: any): Promise<any> {
+export async function executeCommand(args: any, processor: IProcessor, itemInfo: ItemInfo): Promise<void> {
     console.log('cmdInitial');
 
-    let p = resources.processor;
-
     setTimeout(() =>
-        p.publishMany(p.getQueueNames()[0],
+        processor.publishMany(processor.getQueueNames()[0],
             [
                 new CommandInfo('cmdFirst', {a: 'aaa', n: 1}),
                 new CommandInfo('cmdFirst', {a: 'qqq', n: 1})
@@ -16,7 +15,7 @@ export async function executeCommand(args: any, resources: any, itemInfo: ItemIn
     1000);
 
     setInterval(() =>
-        p.publishMany(p.getQueueNames()[0],
+            processor.publishMany(processor.getQueueNames()[0],
             [
                 new CommandInfo('cmdTestP', {order: 1}),
                 new CommandInfo('cmdTestP', {order: 2}),
@@ -24,7 +23,5 @@ export async function executeCommand(args: any, resources: any, itemInfo: ItemIn
             ], false),
     370);
 
-    let updatedResources =  await callback(new CommandInfo('cmdHttpServer'), resources);
-
-    return updatedResources;
+    await processor.getAndExecuteCommand(new CommandInfo('cmdHttpServer'), undefined);
 }
