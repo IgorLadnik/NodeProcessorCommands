@@ -8,7 +8,7 @@ import { Config } from '../config';
 
 export class Processor implements IProcessor {
     static commandsDir = Config.commandsDir;
-    static parallelCmdName = '_cmdParallel';
+    static parallelCmdName = '';
 
     commands = new Dictionary<string, any>();
     queueNames: Array<string>;
