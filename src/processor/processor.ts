@@ -1,30 +1,39 @@
 import { IProcessor } from './iprocessor';
-import { ILogger } from '../infrastructure/ilogger';
+import { ILogger } from '../interfaces/ilogger';
 import { Dictionary } from 'dictionaryjs';
-import { Publisher, Consumer } from '../infrastructure/rabbitmqProvider';
 import { CommandInfo } from '../models/commandinfo';
 import { ItemInfo } from '../models/iteminfo';
 import { Config } from '../config';
+import { IMessangerFactory, IPublisher, IConsumer } from '../interfaces/messageInterfaces';
 
 export class Processor implements IProcessor {
-    static commandsDir = Config.commandsDir;
-    static parallelCmdName = '';
+    private static commandsDir = Config.commandsDir;
+    private static processorBootstrapCommandName = Config.processorBootstrapCommandName;
+    private static parallelCmdName = '';
 
-    commands = new Dictionary<string, any>();
-    queueNames: Array<string>;
-    publishers = new Dictionary<string, Publisher>();
-    resources = new Dictionary<string, any>();
-    l: any;
+    private readonly commands = new Dictionary<string, any>();
+    private readonly queueNames: Array<string>;
+    private readonly publishers = new Dictionary<string, IPublisher>();
+    private readonly resources = new Dictionary<string, any>();
+    private l: any;
+    private messangerFactory: any;
 
     constructor(...queueNames: Array<string>) {
         this.queueNames = queueNames;
     }
 
     async init(): Promise<Processor> {
-        await this.getAndExecuteCommand(new CommandInfo('cmdInitial'), undefined);
+        await this.getAndExecuteCommand(new CommandInfo(Processor.processorBootstrapCommandName), undefined);
         this.l = this.resources.get('logger') as ILogger;
         await Promise.all([this.startConsumers(), this.createPublishers()]);
         return this;
+    }
+
+
+    // Implementation of IProcessor
+
+    initMessangerFactory(messangerFactory: IMessangerFactory): void {
+        this.messangerFactory = messangerFactory;
     }
 
     getQueueNames(): Array<string> {
@@ -45,65 +54,19 @@ export class Processor implements IProcessor {
         this.resources.set(resourceName, resource);
     }
 
-    async createPublishers() {
-        for (let i = 0; i < this.queueNames.length; i++)
-            this.publishers.set(this.queueNames[i], await Publisher.start(this.queueNames[i], this.l, true));
-    }
-
-    async startConsumers() {      
-        let promises = new Array<Promise<Consumer>>();
-        for (let i = 0; i < this.queueNames.length; i++)
-            promises.push(Consumer.start(this.queueNames[i], this.l,async (item: any) =>
-                await this.getCommandFromQueueItemAndExecute(item)));
-                    
-        await Promise.all(promises);
-    }
-
     async publish(queueName: string, commandInfo: CommandInfo, persistent: boolean)
-            : Promise<void> {
+        : Promise<void> {
         await this.publishers.get(queueName).publish<CommandInfo>(queueName, commandInfo, persistent);
     }
 
     async publishMany(queueName: string, arrCommandInfo: Array<CommandInfo>, persistent: boolean)
-            : Promise<void> {
+        : Promise<void> {
         await this.publishers.get(queueName).publishMany<CommandInfo>(queueName, arrCommandInfo, persistent);
     }
 
     async publishParallel(queueName: string, arrCommandInfo: Array<CommandInfo>, persistent: boolean)
-            : Promise<void> {
+        : Promise<void> {
         await this.publish(queueName, new CommandInfo(Processor.parallelCmdName, arrCommandInfo), persistent);
-    }
-
-    async getCommandFromQueueItemAndExecute(item: any): Promise<void> {
-        let _ = item.fields;
-        try {
-            let itemInfo = new ItemInfo(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
-            let commandInfo: CommandInfo = JSON.parse(item.content.toString());
-            if (commandInfo.name === Processor.parallelCmdName)
-                await this.executeParallel(commandInfo.args);
-            else
-                await this.getAndExecuteCommand(commandInfo, itemInfo);
-        }
-        catch (err) {
-            console.log(err);
-        }
-    }
-
-    async executeParallel(args: any): Promise<void> {
-        let commandInfos: Array<CommandInfo> = args;
-        let promises: Array<Promise<any>> = [];
-        if (!commandInfos)
-            return;
-
-        try {
-            for (let i = 0; i < commandInfos.length; i++)
-                promises.push(this.getAndExecuteCommand(commandInfos[i], undefined));
-
-            await Promise.all(promises);
-        }
-        catch (err) {
-            console.log(err);
-        }
     }
 
     async getAndExecuteCommand(commandInfo: CommandInfo, itemInfo: any): Promise<void> {
@@ -117,7 +80,57 @@ export class Processor implements IProcessor {
             await command.executeCommand(commandInfo.args, this as IProcessor, itemInfo);
         }
         catch (err) {
-            console.log(err);
+            this.l.log(err);
+        }
+    }
+
+
+    // Private methods
+
+    private async createPublishers(): Promise<void> {
+        for (let i = 0; i < this.queueNames.length; i++)
+            this.publishers.set(this.queueNames[i],
+                await this.messangerFactory.startPublisher(this.queueNames[i], this.l, true));
+    }
+
+    private async startConsumers(): Promise<void> {
+        let promises = new Array<Promise<IConsumer>>();
+        for (let i = 0; i < this.queueNames.length; i++)
+            promises.push(this.messangerFactory.startConsumer(this.queueNames[i], this.l,
+                async (item: any) => await this.getCommandFromQueueItemAndExecute(item)));
+                    
+        await Promise.all(promises);
+    }
+
+    private async getCommandFromQueueItemAndExecute(item: any): Promise<void> {
+        let _ = item.fields;
+        try {
+            let itemInfo = new ItemInfo(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
+            let commandInfo: CommandInfo = JSON.parse(item.content.toString());
+            if (commandInfo.name === Processor.parallelCmdName)
+                await this.executeParallel(commandInfo.args);
+            else
+                await this.getAndExecuteCommand(commandInfo, itemInfo);
+        }
+        catch (err) {
+            this.l.log(err);
+        }
+    }
+
+    private async executeParallel(args: any): Promise<void> {
+        let commandInfos: Array<CommandInfo> = args;
+        let promises: Array<Promise<any>> = [];
+        if (!commandInfos)
+            return;
+
+        try {
+            for (let i = 0; i < commandInfos.length; i++)
+                promises.push(this.getAndExecuteCommand(commandInfos[i], undefined));
+
+            await Promise.all(promises);
+        }
+        catch (err) {
+            this.l.log(err);
         }
     }
 }

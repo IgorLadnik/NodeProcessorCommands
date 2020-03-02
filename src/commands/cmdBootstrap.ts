@@ -1,10 +1,12 @@
 import { CommandInfo } from '../models/commandInfo';
 import { ItemInfo } from '../models/itemInfo';
 import { IProcessor } from "../processor/iprocessor";
+import { MessangerFactory } from '../infrastructure/rabbitmqProvider';
 
 export async function executeCommand(args: any, processor: IProcessor, itemInfo: ItemInfo): Promise<void> {
     await processor.getAndExecuteCommand(new CommandInfo('cmdLogger'), undefined);
     await processor.getAndExecuteCommand(new CommandInfo('cmdHttpServer'), undefined);
+    processor.initMessangerFactory(new MessangerFactory());
 
     let l = processor.getResource('logger');
     l.log('cmdInitial');

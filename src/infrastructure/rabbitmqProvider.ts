@@ -1,5 +1,35 @@
+import { ILogger } from "../interfaces/ilogger";
+import { IMessangerFactory, IPublisher, IConsumer } from '../interfaces/messageInterfaces';
 let amqp = require('amqplib');
-import { ILogger } from "./ilogger";
+
+export class MessangerFactory implements IMessangerFactory {
+    async startPublisher(queueName: string, l: ILogger, shouldPurge: boolean): Promise<IPublisher> {
+        let publisher = new Publisher(l)
+        try {
+            publisher = await publisher.createChannel(Connection.connUrl);
+        }
+        catch (err) {
+            l.log(err);
+        }
+
+        if (shouldPurge)
+            await publisher.purge(queueName);
+
+        return publisher;
+    }
+
+    async startConsumer(queueName: string, l: ILogger, processCallback: any): Promise<IConsumer> {
+        let consumer = await new Consumer(l).createChannel(Connection.connUrl);
+        try {
+            await consumer.startConsume(queueName, processCallback);
+        }
+        catch (err) {
+            l.log(err);
+        }
+
+        return consumer;
+    }
+}
 
 class Connection {
     static connUrl = 'amqp://localhost';
@@ -20,7 +50,7 @@ class Connection {
     }
 }
 
-export class Publisher extends Connection {
+export class Publisher extends Connection implements IPublisher {
     constructor(l :ILogger) {
         super(l);
     }
@@ -83,7 +113,7 @@ export class Publisher extends Connection {
     }
 }
 
-export class Consumer extends Connection {
+export class Consumer extends Connection implements IConsumer {
     constructor(l :ILogger) {
         super(l);
     }

@@ -1,6 +1,5 @@
 import { ItemInfo } from '../models/itemInfo';
 import { IProcessor } from "../processor/iprocessor";
-const express = require('express');
 import { HttpServerProvider } from '../infrastructure/httpServerProvider';
 import { Config } from '../config';
 
