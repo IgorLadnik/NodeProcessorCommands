@@ -19,7 +19,7 @@ Parameters
                     without queueing in context of current service.
                     Its useful when additional resources should be added to the service,
                     e.g. database connection.
- */
+*/
 export async function executeCommand(args: any, resources: any, itemInfo: ItemInfo, callback: any): Promise<any> {
     const thisCommandName = 'cmdTemplate';
 

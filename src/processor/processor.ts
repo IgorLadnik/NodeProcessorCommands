@@ -1,16 +1,11 @@
-import { Publisher, Consumer } from './infrastructure/rabbitmqProvider';
+import { Publisher, Consumer } from '../infrastructure/rabbitmqProvider';
 import { Dictionary } from 'dictionaryjs';
-import { CommandInfo } from './models/commandInfo';
-import { ItemInfo } from './models/itemInfo';
-
-export interface IProcessor {
-    publish(queueName: string, commandInfo: CommandInfo, persistent: boolean): Promise<void>;
-    publishMany(queueName: string, arrCommandInfo: Array<CommandInfo>, persistent: boolean): Promise<void>;
-    publishParallel(queueName: string, arrCommandInfo: Array<CommandInfo>, persistent: boolean) : Promise<void>;
-}
+import { CommandInfo } from '../models/commandInfo';
+import { ItemInfo } from '../models/itemInfo';
+import { IProcessor } from './iprocessor';
 
 export class Processor implements IProcessor {
-    static commandsDir = './commands/';
+    static commandsDir = '../commands/';
     static parallelCmdName = '_cmdParallel';
 
     static commands = new Dictionary<string, any>();
@@ -20,8 +15,11 @@ export class Processor implements IProcessor {
 
     constructor(...queueNames: Array<string>) {
         this.queueNames = queueNames;
-        //this.resources = { publishers: this.publishers };
         this.resources = { processor: this as IProcessor };
+    }
+
+    getQueueNames(): Array<string> {
+        return this.queueNames;
     }
 
     async createPublishers() {
@@ -92,7 +90,7 @@ export class Processor implements IProcessor {
     }
 
     static async getAndExecuteCommand(commandInfo: CommandInfo, resources: any, itemInfo: any = undefined)
-        : Promise<any> {
+            : Promise<any> {
         let updatedResources = resources;
         try {
             let command: any = Processor.commands.get(commandInfo.name);
