@@ -1,9 +1,9 @@
-import { ItemInfo } from '../models/itemInfo';
+import { MessageInfo } from '../models/messageInfo';
 import { IProcessor } from "../processor/iprocessor";
 import { HttpServerProvider } from '../infrastructure/httpServerProvider';
 import { Config } from '../config';
 
-export async function executeCommand(args: any, processor: IProcessor, itemInfo: ItemInfo): Promise<void> {
+export async function executeCommand(args: any, processor: IProcessor, messageInfo: MessageInfo): Promise<void> {
     const thisCommandName = 'cmdHttpServer';
     let l = processor.getResource('logger');
 

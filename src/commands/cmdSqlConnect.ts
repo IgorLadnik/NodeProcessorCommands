@@ -1,9 +1,9 @@
 import { SqlServerProvider } from '../infrastructure/SqlServerProvider';
 import { IProcessor } from "../processor/iprocessor";
-import { ItemInfo } from "../models/itemInfo";
+import { MessageInfo } from "../models/messageInfo";
 import { Config } from '../config';
 
-export async function executeCommand(args: any, processor: IProcessor, itemInfo: ItemInfo): Promise<void> {
+export async function executeCommand(args: any, processor: IProcessor, messageInfo: MessageInfo): Promise<void> {
     let l = processor.getResource('logger');
     l.log(`cmdSqlConnect: args: ${JSON.stringify(args)}`);
 

@@ -1,18 +1,18 @@
 import { CommandInfo } from '../models/commandInfo';
-import { ItemInfo } from '../models/itemInfo';
+import { MessageInfo } from '../models/messageInfo';
 import { IProcessor } from '../processor/iprocessor';
 
-export async function executeCommand(args: any, processor: IProcessor, itemInfo: ItemInfo): Promise<void> {
+export async function executeCommand(args: any, processor: IProcessor, messageInfo: MessageInfo): Promise<void> {
     const thisCommandName = 'cmdFirst';
     let l = processor.getResource('logger');
-    l.log(`${thisCommandName}: args: ${JSON.stringify(args)} | itemInfo: ${JSON.stringify(itemInfo)}`);
+    l.log(`${thisCommandName}: args: ${JSON.stringify(args)} | messageInfo: ${JSON.stringify(messageInfo)}`);
 
     let recordset: Array<any> = [];
 
     let sql = processor.getResource('sql');
     if (sql === undefined) {
         try {
-            await processor.getAndExecuteCommand(new CommandInfo('cmdSqlConnect'), undefined);
+            await processor.getAndExecuteCommand(new CommandInfo('cmdSqlConnect'), new MessageInfo());
         }
         catch (err) {
             l.log(err);
@@ -32,12 +32,12 @@ export async function executeCommand(args: any, processor: IProcessor, itemInfo:
     }
 
     setTimeout(async () =>
-        await processor.publish(itemInfo.queueName,
-            new CommandInfo(thisCommandName, recordset[itemInfo.deliveryTag % recordset.length]), false)
+        await processor.publish(messageInfo.queueName,
+            new CommandInfo(thisCommandName, recordset[messageInfo.deliveryTag % recordset.length]), false)
     , 1000);
 
-    // await processor.publish(itemInfo.queueName,
-    //     new CommandInfo(thisCommandName, recordset[itemInfo.deliveryTag % recordset.length]), false);
+    // await processor.publish(messageInfo.queueName,
+    //     new CommandInfo(thisCommandName, recordset[messageInfo.deliveryTag % recordset.length]), false);
 }
 
 

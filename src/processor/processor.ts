@@ -2,7 +2,7 @@ import { IProcessor } from './iprocessor';
 import { ILogger } from '../interfaces/ilogger';
 import { Dictionary } from 'dictionaryjs';
 import { CommandInfo } from '../models/commandinfo';
-import { ItemInfo } from '../models/iteminfo';
+import { MessageInfo } from '../models/messageInfo';
 import { Config } from '../config';
 import { IMessangerFactory, IPublisher, IConsumer } from '../interfaces/messageInterfaces';
 
@@ -23,7 +23,7 @@ export class Processor implements IProcessor {
     }
 
     async init(): Promise<Processor> {
-        await this.getAndExecuteCommand(new CommandInfo(Processor.processorBootstrapCommandName), undefined);
+        await this.getAndExecuteCommand(new CommandInfo(Processor.processorBootstrapCommandName), new MessageInfo());
         this.l = this.resources.get('logger') as ILogger;
         await Promise.all([this.startConsumers(), this.createPublishers()]);
         return this;
@@ -69,7 +69,7 @@ export class Processor implements IProcessor {
         await this.publish(queueName, new CommandInfo(Processor.parallelCmdName, arrCommandInfo), persistent);
     }
 
-    async getAndExecuteCommand(commandInfo: CommandInfo, itemInfo: any): Promise<void> {
+    async getAndExecuteCommand(commandInfo: CommandInfo, messageInfo: MessageInfo): Promise<void> {
         try {
             let command: any = this.commands.get(commandInfo.name);
             if (!command) {
@@ -77,7 +77,7 @@ export class Processor implements IProcessor {
                 this.commands.set(commandInfo.name, command);
             }
 
-            await command.executeCommand(commandInfo.args, this as IProcessor, itemInfo);
+            await command.executeCommand(commandInfo.args, this as IProcessor, messageInfo);
         }
         catch (err) {
             this.l.log(err);
@@ -105,12 +105,12 @@ export class Processor implements IProcessor {
     private async getCommandFromQueueItemAndExecute(item: any): Promise<void> {
         let _ = item.fields;
         try {
-            let itemInfo = new ItemInfo(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
+            let messageInfo = new MessageInfo(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
             let commandInfo: CommandInfo = JSON.parse(item.content.toString());
             if (commandInfo.name === Processor.parallelCmdName)
                 await this.executeParallel(commandInfo.args);
             else
-                await this.getAndExecuteCommand(commandInfo, itemInfo);
+                await this.getAndExecuteCommand(commandInfo, messageInfo);
         }
         catch (err) {
             this.l.log(err);
@@ -125,7 +125,7 @@ export class Processor implements IProcessor {
 
         try {
             for (let i = 0; i < commandInfos.length; i++)
-                promises.push(this.getAndExecuteCommand(commandInfos[i], undefined));
+                promises.push(this.getAndExecuteCommand(commandInfos[i], new MessageInfo()));
 
             await Promise.all(promises);
         }
