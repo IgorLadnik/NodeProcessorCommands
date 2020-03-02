@@ -2,13 +2,14 @@ import { ItemInfo } from '../models/itemInfo';
 import { IProcessor } from "../processor/iprocessor";
 const express = require('express');
 import { HttpServerProvider } from '../infrastructure/httpServerProvider';
+import { Config } from '../config';
 
 export async function executeCommand(args: any, processor: IProcessor, itemInfo: ItemInfo): Promise<void> {
     const thisCommandName = 'cmdHttpServer';
     let l = processor.getResource('logger');
 
-    const httpServer = new HttpServerProvider(l).server;
-    const port = 19019;
+    const port = Config.port;
+    const httpServer = new HttpServerProvider(port as number, l).server;
     l.log(`${thisCommandName}: port = ${port}`);
 
     httpServer.get('/', (req: any, res: any) => {

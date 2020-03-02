@@ -4,9 +4,10 @@ import { Dictionary } from 'dictionaryjs';
 import { Publisher, Consumer } from '../infrastructure/rabbitmqProvider';
 import { CommandInfo } from '../models/commandinfo';
 import { ItemInfo } from '../models/iteminfo';
+import { Config } from '../config';
 
 export class Processor implements IProcessor {
-    static commandsDir = '../commands/';
+    static commandsDir = Config.commandsDir;
     static parallelCmdName = '_cmdParallel';
 
     commands = new Dictionary<string, any>();
