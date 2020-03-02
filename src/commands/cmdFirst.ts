@@ -4,7 +4,8 @@ import { IProcessor } from '../processor/iprocessor';
 
 export async function executeCommand(args: any, processor: IProcessor, itemInfo: ItemInfo): Promise<void> {
     const thisCommandName = 'cmdFirst';
-    console.log(`${thisCommandName}: args: ${JSON.stringify(args)} | itemInfo: ${JSON.stringify(itemInfo)}`);
+    let l = processor.getResource('logger');
+    l.log(`${thisCommandName}: args: ${JSON.stringify(args)} | itemInfo: ${JSON.stringify(itemInfo)}`);
 
     let recordset: Array<any> = [];
 
@@ -14,7 +15,7 @@ export async function executeCommand(args: any, processor: IProcessor, itemInfo:
             await processor.getAndExecuteCommand(new CommandInfo('cmdSqlConnect'), undefined);
         }
         catch (err) {
-            console.log(err);
+            l.log(err);
         }
     }
 
@@ -23,11 +24,11 @@ export async function executeCommand(args: any, processor: IProcessor, itemInfo:
         try {
             recordset = await sql.simpleQuery('*', 'Pets');
         } catch (err) {
-            console.log(err);
+            l.log(err);
         }
     }
     else {
-        console.log('No connection to SQL Server');
+        l.log('No connection to SQL Server');
     }
 
     setTimeout(async () =>

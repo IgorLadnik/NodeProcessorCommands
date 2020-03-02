@@ -1,28 +1,37 @@
 let amqp = require('amqplib');
-//import { Buffer } from 'buffer';
+import { ILogger } from "./ilogger";
 
 class Connection {
     static connUrl = 'amqp://localhost';
     channel: any; 
+    l: ILogger;
+
+    constructor(l :ILogger) {
+        this.l = l;
+    }
 
     async connect(connUrl: string): Promise<void> {
         try {
             return await amqp.connect(connUrl);
         }
         catch (err) {
-            console.log(err);
+            this.l.log(err);
         }
     }
 }
 
 export class Publisher extends Connection {
+    constructor(l :ILogger) {
+        super(l);
+    }
+
     async createChannel(connUrl: string): Promise<Publisher> {
         let conn: any = await super.connect(connUrl);
         try {
             this.channel = await conn.createConfirmChannel();
         }
         catch (err) {
-            console.log(err);
+            this.l.log(err);
         }
 
         return this;
@@ -33,7 +42,7 @@ export class Publisher extends Connection {
             await this.channel.sendToQueue(queueName, content, {persistent});
         }
         catch (err) {
-            console.log(err);
+            this.l.log(err);
         }
     }
 
@@ -54,17 +63,17 @@ export class Publisher extends Connection {
             await this.channel.purgeQueue(queueName);
         }
         catch (err) {
-            console.log(err);
+            this.l.log(err);
         }
     }
 
-    static async start(queueName: string, shouldPurge: boolean): Promise<Publisher> {
-        let publisher = new Publisher()
+    static async start(queueName: string, l: ILogger, shouldPurge: boolean): Promise<Publisher> {
+        let publisher = new Publisher(l)
         try {
             publisher = await publisher.createChannel(Connection.connUrl);
         }
         catch (err) {
-            console.log(err);
+            l.log(err);
         }
 
         if (shouldPurge)
@@ -75,6 +84,10 @@ export class Publisher extends Connection {
 }
 
 export class Consumer extends Connection {
+    constructor(l :ILogger) {
+        super(l);
+    }
+    
     async createChannel(connUrl: string): Promise<Consumer> {
         let conn: any = await super.connect(Connection.connUrl);
         try {
@@ -82,7 +95,7 @@ export class Consumer extends Connection {
             await this.channel.prefetch();
         }
         catch (err) {
-            console.log(err);
+            this.l.log(err);
         }
 
         return this;
@@ -96,19 +109,19 @@ export class Consumer extends Connection {
             await this.channel.consume(queueName, processCallback, {noAck});
         }
         catch (err) {
-            console.log(err);
+            this.l.log(err);
         }
 
         return this;
     }
     
-    static async start(queueName: string, processCallback: any): Promise<Consumer> {
-        let consumer = await new Consumer().createChannel(Connection.connUrl);
+    static async start(queueName: string, l: ILogger, processCallback: any): Promise<Consumer> {
+        let consumer = await new Consumer(l).createChannel(Connection.connUrl);
         try {
             await consumer.startConsume(queueName, processCallback);
         }
         catch (err) {
-            console.log(err);
+            l.log(err);
         }
 
         return consumer;

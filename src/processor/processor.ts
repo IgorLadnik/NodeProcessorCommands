@@ -1,8 +1,9 @@
-import { Publisher, Consumer } from '../infrastructure/rabbitmqProvider';
-import { Dictionary } from 'dictionaryjs';
-import { CommandInfo } from '../models/commandInfo';
-import { ItemInfo } from '../models/itemInfo';
 import { IProcessor } from './iprocessor';
+import { ILogger } from '../infrastructure/ilogger';
+import { Dictionary } from 'dictionaryjs';
+import { Publisher, Consumer } from '../infrastructure/rabbitmqProvider';
+import { CommandInfo } from '../models/commandinfo';
+import { ItemInfo } from '../models/iteminfo';
 
 export class Processor implements IProcessor {
     static commandsDir = '../commands/';
@@ -12,10 +13,17 @@ export class Processor implements IProcessor {
     queueNames: Array<string>;
     publishers = new Dictionary<string, Publisher>();
     resources = new Dictionary<string, any>();
+    l: any;
 
     constructor(...queueNames: Array<string>) {
         this.queueNames = queueNames;
-        //this.resources = { processor: this as IProcessor };
+    }
+
+    async init(): Promise<Processor> {
+        await this.getAndExecuteCommand(new CommandInfo('cmdInitial'), undefined);
+        this.l = this.resources.get('logger') as ILogger;
+        await Promise.all([this.startConsumers(), this.createPublishers()]);
+        return this;
     }
 
     getQueueNames(): Array<string> {
@@ -38,13 +46,13 @@ export class Processor implements IProcessor {
 
     async createPublishers() {
         for (let i = 0; i < this.queueNames.length; i++)
-            this.publishers.set(this.queueNames[i], await Publisher.start(this.queueNames[i], true));
+            this.publishers.set(this.queueNames[i], await Publisher.start(this.queueNames[i], this.l, true));
     }
 
     async startConsumers() {      
         let promises = new Array<Promise<Consumer>>();
         for (let i = 0; i < this.queueNames.length; i++)
-            promises.push(Consumer.start(this.queueNames[i], async (item: any) =>
+            promises.push(Consumer.start(this.queueNames[i], this.l,async (item: any) =>
                 await this.getCommandFromQueueItemAndExecute(item)));
                     
         await Promise.all(promises);

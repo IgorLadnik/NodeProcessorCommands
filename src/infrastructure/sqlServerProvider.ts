@@ -1,9 +1,12 @@
 const sql = require('mssql/msnodesqlv8');
+import { ILogger } from "./ilogger";
 
 export class SqlServerProvider {
     config: any;
+    l: ILogger
 
-    constructor(config: any) {
+    constructor(config: any, l: ILogger) {
+        this.l = l;
         this.config = {
             server: config.server, 
             database: config.database,
@@ -19,7 +22,7 @@ export class SqlServerProvider {
             await sql.connect(this.config);
         }
         catch (err) {
-            console.log(err);
+            this.l.log(err);
         }
     } 
 
@@ -34,7 +37,7 @@ export class SqlServerProvider {
             retRecordset = (await request.query(`select ${select} from ${from}${suffix}`)).recordset;     
         }
         catch (err) {
-            console.log(err);
+            this.l.log(err);
         }
 
         return retRecordset;         

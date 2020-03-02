@@ -1,28 +1,22 @@
 import { ItemInfo } from '../models/itemInfo';
-import {IProcessor} from "../processor/iprocessor";
+import { IProcessor } from "../processor/iprocessor";
 const express = require('express');
+import { HttpServerProvider } from '../infrastructure/httpServerProvider';
 
 export async function executeCommand(args: any, processor: IProcessor, itemInfo: ItemInfo): Promise<void> {
     const thisCommandName = 'cmdHttpServer';
+    let l = processor.getResource('logger');
 
-    const httpServer = express();
+    const httpServer = new HttpServerProvider(l).server;
     const port = 19019;
-    console.log(`${thisCommandName}: port = ${port}`);
+    l.log(`${thisCommandName}: port = ${port}`);
 
     httpServer.get('/', (req: any, res: any) => {
         try {
             res.send('Hello World!');
         }
         catch (err) {
-            console.log(err);
+            l.log(err);
         }
     });
-
-    try {
-        httpServer.listen(port, () => console.log(`HTTP Server is listening on port ${port}`));
-        processor.addResource('httpServer', httpServer);
-    }
-    catch (err) {
-        console.log(err);
-    }
 }

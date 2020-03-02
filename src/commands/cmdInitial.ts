@@ -1,9 +1,13 @@
 import { CommandInfo } from '../models/commandInfo';
 import { ItemInfo } from '../models/itemInfo';
-import {IProcessor} from "../processor/iprocessor";
+import { IProcessor } from "../processor/iprocessor";
 
 export async function executeCommand(args: any, processor: IProcessor, itemInfo: ItemInfo): Promise<void> {
-    console.log('cmdInitial');
+    await processor.getAndExecuteCommand(new CommandInfo('cmdLogger'), undefined);
+    await processor.getAndExecuteCommand(new CommandInfo('cmdHttpServer'), undefined);
+
+    let l = processor.getResource('logger');
+    l.log('cmdInitial');
 
     setTimeout(() =>
         processor.publishMany(processor.getQueueNames()[0],
@@ -22,6 +26,4 @@ export async function executeCommand(args: any, processor: IProcessor, itemInfo:
                 new CommandInfo('cmdTestP', {order: 3})
             ], false),
     370);
-
-    await processor.getAndExecuteCommand(new CommandInfo('cmdHttpServer'), undefined);
 }
