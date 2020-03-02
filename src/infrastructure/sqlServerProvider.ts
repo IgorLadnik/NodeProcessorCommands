@@ -2,8 +2,8 @@ const sql = require('mssql/msnodesqlv8');
 import { ILogger } from "../interfaces/ilogger";
 
 export class SqlServerProvider {
-    config: any;
-    l: ILogger
+    private config: any;
+    private l: ILogger
 
     constructor(config: any, l: ILogger) {
         this.l = l;

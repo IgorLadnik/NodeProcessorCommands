@@ -4,7 +4,7 @@ import { Dictionary } from 'dictionaryjs';
 import { CommandInfo } from '../models/commandinfo';
 import { MessageInfo } from '../models/messageInfo';
 import { Config } from '../config';
-import { IMessangerFactory, IPublisher, IConsumer } from '../interfaces/messageInterfaces';
+import { IMessageBrokerFactory, IPublisher, IConsumer } from '../interfaces/messageInterfaces';
 
 export class Processor implements IProcessor {
     private static commandsDir = Config.commandsDir;
@@ -16,7 +16,7 @@ export class Processor implements IProcessor {
     private readonly publishers = new Dictionary<string, IPublisher>();
     private readonly resources = new Dictionary<string, any>();
     private l: any;
-    private messangerFactory: any;
+    private messageBrokerFactory: any;
 
     constructor(...queueNames: Array<string>) {
         this.queueNames = queueNames;
@@ -32,8 +32,8 @@ export class Processor implements IProcessor {
 
     // Implementation of IProcessor
 
-    initMessangerFactory(messangerFactory: IMessangerFactory): void {
-        this.messangerFactory = messangerFactory;
+    initMessangerFactory(messageBrokerFactory: IMessageBrokerFactory): void {
+        this.messageBrokerFactory = messageBrokerFactory;
     }
 
     getQueueNames(): Array<string> {
@@ -90,13 +90,13 @@ export class Processor implements IProcessor {
     private async createPublishers(): Promise<void> {
         for (let i = 0; i < this.queueNames.length; i++)
             this.publishers.set(this.queueNames[i],
-                await this.messangerFactory.startPublisher(this.queueNames[i], this.l, true));
+                await this.messageBrokerFactory.startPublisher(this.queueNames[i], this.l, true));
     }
 
     private async startConsumers(): Promise<void> {
         let promises = new Array<Promise<IConsumer>>();
         for (let i = 0; i < this.queueNames.length; i++)
-            promises.push(this.messangerFactory.startConsumer(this.queueNames[i], this.l,
+            promises.push(this.messageBrokerFactory.startConsumer(this.queueNames[i], this.l,
                 async (item: any) => await this.getCommandFromQueueItemAndExecute(item)));
                     
         await Promise.all(promises);

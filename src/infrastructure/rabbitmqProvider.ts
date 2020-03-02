@@ -1,8 +1,8 @@
 import { ILogger } from "../interfaces/ilogger";
-import { IMessangerFactory, IPublisher, IConsumer } from '../interfaces/messageInterfaces';
+import { IMessageBrokerFactory, IPublisher, IConsumer } from '../interfaces/messageInterfaces';
 let amqp = require('amqplib');
 
-export class MessangerFactory implements IMessangerFactory {
+export class MessageBrokerFactory implements IMessageBrokerFactory {
     async startPublisher(queueName: string, l: ILogger, shouldPurge: boolean): Promise<IPublisher> {
         let publisher = new Publisher(l)
         try {
@@ -96,21 +96,6 @@ export class Publisher extends Connection implements IPublisher {
             this.l.log(err);
         }
     }
-
-    static async start(queueName: string, l: ILogger, shouldPurge: boolean): Promise<Publisher> {
-        let publisher = new Publisher(l)
-        try {
-            publisher = await publisher.createChannel(Connection.connUrl);
-        }
-        catch (err) {
-            l.log(err);
-        }
-
-        if (shouldPurge)
-            await publisher.purge(queueName);
-
-        return publisher;
-    }
 }
 
 export class Consumer extends Connection implements IConsumer {
@@ -144,16 +129,4 @@ export class Consumer extends Connection implements IConsumer {
 
         return this;
     }
-    
-    static async start(queueName: string, l: ILogger, processCallback: any): Promise<Consumer> {
-        let consumer = await new Consumer(l).createChannel(Connection.connUrl);
-        try {
-            await consumer.startConsume(queueName, processCallback);
-        }
-        catch (err) {
-            l.log(err);
-        }
-
-        return consumer;
-    }   
 }

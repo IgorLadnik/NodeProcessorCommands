@@ -1,6 +1,6 @@
 import { ILogger } from "./ilogger";
 
-export interface IMessangerFactory {
+export interface IMessageBrokerFactory {
     startPublisher(queueName: string, l: ILogger, shouldPurge: boolean): Promise<IPublisher>;
     startConsumer(queueName: string, l: ILogger, processCallback: any): Promise<IConsumer>;
 }

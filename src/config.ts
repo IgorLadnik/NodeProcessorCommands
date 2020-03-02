@@ -5,5 +5,5 @@ export class Config {
     static processorBootstrapCommandName: string = 'cmdBootstrap';
     static sqlServer: string = 'IGORMAIN\\MSSQLSERVER01';
     static sqlDatabase: string = 'PetsDb';
-    static port: number = 19019;
+    static port: number = 15015;
 }
