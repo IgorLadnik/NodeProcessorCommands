@@ -3,7 +3,7 @@ import { IMessageBrokerFactory } from '../interfaces/messageInterfaces';
 import { MessageInfo } from '../models/messageInfo';
 
 export interface IProcessor {
-    initMessangerFactory(messageBrokerFactory: IMessageBrokerFactory): void;
+    createMessageBrokerFactory(messageBrokerFactory: IMessageBrokerFactory): void;
     getQueueNames(): Array<string>;
     publish(queueName: string, commandInfo: CommandInfo, persistent: boolean): Promise<void>;
     publishMany(queueName: string, arrCommandInfo: Array<CommandInfo>, persistent: boolean): Promise<void>;

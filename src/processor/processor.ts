@@ -32,7 +32,7 @@ export class Processor implements IProcessor {
 
     // Implementation of IProcessor
 
-    initMessangerFactory(messageBrokerFactory: IMessageBrokerFactory): void {
+    createMessageBrokerFactory(messageBrokerFactory: IMessageBrokerFactory): void {
         this.messageBrokerFactory = messageBrokerFactory;
     }
 
@@ -45,7 +45,7 @@ export class Processor implements IProcessor {
             return this.resources.get(resourceName);
         }
         catch (err) {
-            console.log(`resource \"resourceName\" is not available`);
+            this.l.log(`resource \"resourceName\" is not available`);
             return undefined;
         }
     }

@@ -6,7 +6,7 @@ import { MessageBrokerFactory } from '../infrastructure/rabbitmqProvider';
 export async function executeCommand(args: any, processor: IProcessor, messageInfo: MessageInfo): Promise<void> {
     await processor.getAndExecuteCommand(new CommandInfo('cmdLogger'), new MessageInfo());
     await processor.getAndExecuteCommand(new CommandInfo('cmdHttpServer'), new MessageInfo());
-    processor.initMessangerFactory(new MessageBrokerFactory());
+    processor.createMessageBrokerFactory(new MessageBrokerFactory());
 
     let l = processor.getResource('logger');
     l.log('cmdBootstrap');
