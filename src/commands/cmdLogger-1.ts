@@ -8,5 +8,5 @@ export async function executeCommand(args: any, processor: IProcessor, messageIn
     let logger = new Logger();
     logger.log(`${thisCommandName}`);
 
-    processor.addResource('logger', logger);
+    processor.setResource('logger', logger);
 }

@@ -10,5 +10,5 @@ export interface IProcessor {
     publishParallel(queueName: string, arrCommandInfo: Array<CommandInfo>, persistent: boolean) : Promise<void>;
     getAndExecuteCommand(commandInfo: CommandInfo, messageInfo: MessageInfo): Promise<void>;
     getResource(resourceName: string): any
-    addResource(resourceName: string, resource: any): void;
+    setResource(resourceName: string, resource: any): void;
 }

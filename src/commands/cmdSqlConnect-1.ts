@@ -12,7 +12,7 @@ export async function executeCommand(args: any, processor: IProcessor, messageIn
     let sql = new SqlServerProvider({server, database}, l);
     try {
         await sql.connect();
-        processor.addResource('sql', sql);
+        processor.setResource('sql', sql);
     }
     catch (err) {
         l.log(err);

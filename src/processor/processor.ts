@@ -54,8 +54,11 @@ export class Processor implements IProcessor {
         }
     }
 
-    addResource(resourceName: string, resource: any): void {
-        this.resources.set(resourceName, resource);
+    setResource(resourceName: string, resource: any): void {
+        if (resource !== undefined)
+            this.resources.set(resourceName, resource);
+        else
+            this.resources.remove(resourceName);
     }
 
     async publish(queueName: string, commandInfo: CommandInfo, persistent: boolean)

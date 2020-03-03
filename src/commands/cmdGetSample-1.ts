@@ -3,11 +3,8 @@ import { MessageInfo } from '../models/messageInfo';
 import { IProcessor } from '../interfaces/iprocessor';
 
 export async function executeCommand(args: any, processor: IProcessor, messageInfo: MessageInfo): Promise<void> {
-    const thisCommandName = 'cmdFirst';
+    const thisCommandName = 'cmdGetSample';
     let l = processor.getResource('logger');
-    //l.log(`${thisCommandName}: args: ${JSON.stringify(args)} | messageInfo: ${JSON.stringify(messageInfo)}`);
-
-    let recordset: Array<any> = [];
 
     let sql = processor.getResource('sql');
     if (sql === undefined) {
@@ -16,18 +13,11 @@ export async function executeCommand(args: any, processor: IProcessor, messageIn
     }
 
     if (sql !== undefined) {
-        let recordset = await sql.simpleQuery('*', 'Pets');
+        let recordset = await sql.simpleQuery(args.select, args.from);
         processor.setResource('recordset', recordset);
         l.log(`${thisCommandName}: args: ${JSON.stringify(recordset)} | messageInfo: ${JSON.stringify(messageInfo)}`);
     }
-
-    setTimeout(async () =>
-        await processor.publish(messageInfo.queueName,
-            new CommandInfo(thisCommandName, recordset[messageInfo.deliveryTag % recordset.length]), false)
-    , 1000);
-
-    // await processor.publish(messageInfo.queueName,
-    //     new CommandInfo(thisCommandName, recordset[messageInfo.deliveryTag % recordset.length]), false);
 }
+
 
 
