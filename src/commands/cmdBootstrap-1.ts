@@ -21,7 +21,7 @@ export async function executeCommand(args: any, processor: IProcessor, messageIn
     1000);
 
     setInterval(() =>
-            processor.publishMany(processor.getQueueNames()[0],
+            processor.publishParallel(processor.getQueueNames()[0],
             [
                 new CommandInfo('cmdTestP', {order: 1}),
                 new CommandInfo('cmdTestP', {order: 2}),
