@@ -77,11 +77,17 @@ export class Processor implements IProcessor {
         try {
             let command: any = this.commands.get(commandInfo.name);
             if (!command) {
-                command = await import(this.commandNames.get(commandInfo.name));
-                this.commands.set(commandInfo.name, command);
+                let actualCommandFileName = this.commandNames.get(commandInfo.name);
+                if (actualCommandFileName) {
+                    command = await import(actualCommandFileName);
+                    this.commands.set(commandInfo.name, command);
+                }
+                else
+                    this.l.log(`Error: file for command \"${commandInfo.name}\" does not exists`);
             }
 
-            await command.executeCommand(commandInfo.args, this as IProcessor, messageInfo);
+            if (command)
+                await command.executeCommand(commandInfo.args, this as IProcessor, messageInfo);
         }
         catch (err) {
             this.l.log(err);
@@ -140,9 +146,9 @@ export class Processor implements IProcessor {
 
     private createCommandFileLookup() {
         fs.readdirSync(this.commandsDir).forEach((fileName: string) => {
-            let fparsed = Processor.parseFileName(fileName);
-            if (Processor.checkOnVersion(fparsed))
-                this.commandNames.set(fparsed.name, `${this.commandsDir}${fileName}`);
+            let _ = Processor.parseFileName(fileName);
+            if (Processor.checkOnVersion(_))
+                this.commandNames.set(_.name, `${this.commandsDir}${fileName}`);
         });
     }
 
@@ -156,9 +162,9 @@ export class Processor implements IProcessor {
         return { name, version, ext, extMap };
     }
 
-    private static checkOnVersion(fparsed: any): boolean {
-        return Config.versionMin <= fparsed.version && fparsed.version <= Config.versionMin
-            && fparsed.ext.toLowerCase() === 'js' && fparsed.extMap === '';
+    private static checkOnVersion(_: any): boolean {
+        return Config.versionMin <= _.version && _.version <= Config.versionMax
+               && _.ext.toLowerCase() === 'js' && _.extMap === '';
     }
 }
 
