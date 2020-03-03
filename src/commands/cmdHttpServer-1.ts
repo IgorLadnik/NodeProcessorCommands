@@ -1,5 +1,5 @@
 import { MessageInfo } from '../models/messageInfo';
-import { IProcessor } from "../processor/iprocessor";
+import { IProcessor } from "../interfaces/iprocessor";
 import { HttpServerProvider } from '../infrastructure/httpServerProvider';
 import { Config } from '../config';
 

@@ -1,15 +1,16 @@
-import { IProcessor } from './iprocessor';
+import { IProcessor } from '../interfaces/iprocessor';
 import { ILogger } from '../interfaces/ilogger';
 import { Dictionary } from 'dictionaryjs';
 import { CommandInfo } from '../models/commandinfo';
 import { MessageInfo } from '../models/messageInfo';
 import { Config } from '../config';
 import { IMessageBrokerFactory, IPublisher, IConsumer } from '../interfaces/messageInterfaces';
+const fs = require('fs');
 
 export class Processor implements IProcessor {
-    private static commandsDir = Config.commandsDir;
-    private static processorBootstrapCommandName = Config.processorBootstrapCommandName;
-    private static parallelCmdName = '';
+    private commandsDir: string;
+    private processorBootstrapCommandName = Config.processorBootstrapCommandName;
+    private parallelCmdName = '';
 
     private readonly commands = new Dictionary<string, any>();
     private readonly queueNames: Array<string>;
@@ -17,13 +18,16 @@ export class Processor implements IProcessor {
     private readonly resources = new Dictionary<string, any>();
     private l: any;
     private messageBrokerFactory: any;
+    private readonly commandNames = new Dictionary<string, string>();
 
-    constructor(...queueNames: Array<string>) {
+    constructor(workingDir: string, ...queueNames: Array<string>) {
+        this.commandsDir = `${workingDir}/${Config.commandsDir}/`;
         this.queueNames = queueNames;
+        this.createCommandFileLookup();
     }
 
     async init(): Promise<Processor> {
-        await this.getAndExecuteCommand(new CommandInfo(Processor.processorBootstrapCommandName), new MessageInfo());
+        await this.getAndExecuteCommand(new CommandInfo(this.processorBootstrapCommandName), new MessageInfo());
         this.l = this.resources.get('logger') as ILogger;
         await Promise.all([this.startConsumers(), this.createPublishers()]);
         return this;
@@ -66,14 +70,14 @@ export class Processor implements IProcessor {
 
     async publishParallel(queueName: string, arrCommandInfo: Array<CommandInfo>, persistent: boolean)
         : Promise<void> {
-        await this.publish(queueName, new CommandInfo(Processor.parallelCmdName, arrCommandInfo), persistent);
+        await this.publish(queueName, new CommandInfo(this.parallelCmdName, arrCommandInfo), persistent);
     }
 
     async getAndExecuteCommand(commandInfo: CommandInfo, messageInfo: MessageInfo): Promise<void> {
         try {
             let command: any = this.commands.get(commandInfo.name);
             if (!command) {
-                command = await import(`${Processor.commandsDir}${commandInfo.name}`);
+                command = await import(this.commandNames.get(commandInfo.name));
                 this.commands.set(commandInfo.name, command);
             }
 
@@ -107,7 +111,7 @@ export class Processor implements IProcessor {
         try {
             let messageInfo = new MessageInfo(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
             let commandInfo: CommandInfo = JSON.parse(item.content.toString());
-            if (commandInfo.name === Processor.parallelCmdName)
+            if (commandInfo.name === this.parallelCmdName)
                 await this.executeParallel(commandInfo.args);
             else
                 await this.getAndExecuteCommand(commandInfo, messageInfo);
@@ -132,6 +136,29 @@ export class Processor implements IProcessor {
         catch (err) {
             this.l.log(err);
         }
+    }
+
+    private createCommandFileLookup() {
+        fs.readdirSync(this.commandsDir).forEach((fileName: string) => {
+            let fparsed = Processor.parseFileName(fileName);
+            if (Processor.checkOnVersion(fparsed))
+                this.commandNames.set(fparsed.name, `${this.commandsDir}${fileName}`);
+        });
+    }
+
+    private static parseFileName(fileName: string): any  {
+        let ss0 = fileName.split('-');
+        let name = ss0[0];
+        let ss1 = ss0[1].split('.');
+        let version = parseInt(ss1[0]);
+        let ext = ss1[1];
+        let extMap = ss1.length > 2 ? ss1[2] : '';
+        return { name, version, ext, extMap };
+    }
+
+    private static checkOnVersion(fparsed: any): boolean {
+        return Config.versionMin <= fparsed.version && fparsed.version <= Config.versionMin
+            && fparsed.ext.toLowerCase() === 'js' && fparsed.extMap === '';
     }
 }
 

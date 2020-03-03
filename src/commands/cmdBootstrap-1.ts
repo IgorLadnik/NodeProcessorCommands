@@ -1,6 +1,6 @@
 import { CommandInfo } from '../models/commandInfo';
 import { MessageInfo } from '../models/messageInfo';
-import { IProcessor } from "../processor/iprocessor";
+import { IProcessor } from "../interfaces/iprocessor";
 import { MessageBrokerFactory } from '../infrastructure/rabbitmqProvider';
 
 export async function executeCommand(args: any, processor: IProcessor, messageInfo: MessageInfo): Promise<void> {

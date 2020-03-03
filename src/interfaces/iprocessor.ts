@@ -1,5 +1,5 @@
 import { CommandInfo } from '../models/commandInfo';
-import { IMessageBrokerFactory } from '../interfaces/messageInterfaces';
+import { IMessageBrokerFactory } from './messageInterfaces';
 import { MessageInfo } from '../models/messageInfo';
 
 export interface IProcessor {

@@ -1,5 +1,5 @@
 import { MessageInfo } from '../models/messageInfo';
-import { IProcessor } from "../processor/iprocessor";
+import { IProcessor } from "../interfaces/iprocessor";
 
 export async function executeCommand(args: any, processor: IProcessor, messageInfo: MessageInfo): Promise<void> {
     const thisCommandName = 'cmdTestP';

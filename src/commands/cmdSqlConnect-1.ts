@@ -1,5 +1,5 @@
 import { SqlServerProvider } from '../infrastructure/SqlServerProvider';
-import { IProcessor } from "../processor/iprocessor";
+import { IProcessor } from "../interfaces/iprocessor";
 import { MessageInfo } from "../models/messageInfo";
 import { Config } from '../config';
 
