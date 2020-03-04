@@ -6,11 +6,11 @@ import {CommandInfo} from "../models/commandInfo";
 
 export async function executeCommand(args: any, processor: IProcessor, messageInfo: MessageInfo): Promise<void> {
     const thisCommandName = 'cmdHttpServer';
-    let l = processor.getResource('logger');
+    let logger = processor.getLogger();
 
     const port = Config.port;
-    const httpServer = new HttpServerProvider(port as number, l).server;
-    l.log(`${thisCommandName}: port = ${port}`);
+    const httpServer = new HttpServerProvider(port as number, logger).server;
+    logger.log(`${thisCommandName}: port = ${port}`);
 
     httpServer.get('/', async (req: any, res: any) => {
         await processor.getAndExecuteCommand(
@@ -23,7 +23,7 @@ export async function executeCommand(args: any, processor: IProcessor, messageIn
             try {
                 res.send(`Hello World! ${JSON.stringify(recordset)}`);
             } catch (err) {
-                l.log(err);
+                logger.log(err);
             }
         }
     });

@@ -4,18 +4,18 @@ import { MessageInfo } from "../models/messageInfo";
 import { Config } from '../config';
 
 export async function executeCommand(args: any, processor: IProcessor, messageInfo: MessageInfo): Promise<void> {
-    let l = processor.getResource('logger');
-    l.log(`cmdSqlConnect: args: ${JSON.stringify(args)}`);
+    let logger = processor.getLogger();
+    logger.log(`cmdSqlConnect: args: ${JSON.stringify(args)}`);
 
     let server = Config.sqlServer;
     let database = Config.sqlDatabase;
-    let sql = new SqlServerProvider({server, database}, l);
+    let sql = new SqlServerProvider({server, database}, logger);
     try {
         await sql.connect();
         processor.setResource('sql', sql);
     }
     catch (err) {
-        l.log(err);
+        logger.log(err);
     }
 }
 

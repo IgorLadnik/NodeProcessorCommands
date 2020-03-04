@@ -1,15 +1,12 @@
 import { CommandInfo } from '../models/commandInfo';
 import { MessageInfo } from '../models/messageInfo';
 import { IProcessor } from "../interfaces/iprocessor";
-import { MessageBrokerFactory } from '../infrastructure/rabbitmqProvider';
 
 export async function executeCommand(args: any, processor: IProcessor, messageInfo: MessageInfo): Promise<void> {
-    await processor.getAndExecuteCommand(new CommandInfo('cmdLogger'), new MessageInfo());
     await processor.getAndExecuteCommand(new CommandInfo('cmdHttpServer'), new MessageInfo());
-    processor.createMessageBrokerFactory(new MessageBrokerFactory());
 
-    let l = processor.getResource('logger');
-    l.log('cmdBootstrap');
+    let logger = processor.getLogger();
+    logger.log('cmdBootstrap');
 
     setTimeout(() =>
         processor.publishMany(processor.getQueueNames()[0],

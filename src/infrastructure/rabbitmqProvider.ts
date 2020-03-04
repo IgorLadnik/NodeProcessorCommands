@@ -2,7 +2,9 @@ import { ILogger } from "../interfaces/ilogger";
 import { IMessageBrokerFactory, IPublisher, IConsumer } from '../interfaces/messageInterfaces';
 let amqp = require('amqplib');
 
-export class MessageBrokerFactory implements IMessageBrokerFactory {
+export function createMessageBrokerFactory(): IMessageBrokerFactory { return new MessageBrokerFactory(); }
+
+class MessageBrokerFactory implements IMessageBrokerFactory {
     async startPublisher(queueName: string, l: ILogger, shouldPurge: boolean): Promise<IPublisher> {
         let publisher = new Publisher(l)
         try {
@@ -50,7 +52,7 @@ class Connection {
     }
 }
 
-export class Publisher extends Connection implements IPublisher {
+class Publisher extends Connection implements IPublisher {
     constructor(l :ILogger) {
         super(l);
     }
@@ -98,7 +100,7 @@ export class Publisher extends Connection implements IPublisher {
     }
 }
 
-export class Consumer extends Connection implements IConsumer {
+ class Consumer extends Connection implements IConsumer {
     constructor(l :ILogger) {
         super(l);
     }

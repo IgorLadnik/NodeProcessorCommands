@@ -16,19 +16,23 @@ export class Processor implements IProcessor {
     private readonly queueNames: Array<string>;
     private readonly publishers = new Dictionary<string, IPublisher>();
     private readonly resources = new Dictionary<string, any>();
-    private l: any;
-    private messageBrokerFactory: any;
+    private logger: ILogger;
+    private messageBrokerFactory: IMessageBrokerFactory;
     private readonly commandNames = new Dictionary<string, string>();
+    private readonly workingDir: string;
 
-    constructor(workingDir: string, ...queueNames: Array<string>) {
-        this.commandsDir = `${workingDir}/${Config.commandsDir}/`;
-        this.queueNames = queueNames;
+    constructor(workingDir: string) {
+        this.workingDir = workingDir;
+        this.commandsDir = `${this.workingDir}/${Config.commandsDir}/`;
+        this.queueNames = Config.queueNames;
         this.createCommandFileLookup();
     }
 
     async init(): Promise<Processor> {
+        this.messageBrokerFactory = (await import(`${this.workingDir}/${Config.messageBrokerFactoryFilePath}`))
+                                        .createMessageBrokerFactory();
+        this.logger = (await import(`${this.workingDir}/${Config.loggerFilePath}`)).createLogger();
         await this.getAndExecuteCommand(new CommandInfo(this.processorBootstrapCommandName), new MessageInfo());
-        this.l = this.resources.get('logger') as ILogger;
         await Promise.all([this.startConsumers(), this.createPublishers()]);
         return this;
     }
@@ -36,8 +40,8 @@ export class Processor implements IProcessor {
 
     // Implementation of IProcessor
 
-    createMessageBrokerFactory(messageBrokerFactory: IMessageBrokerFactory): void {
-        this.messageBrokerFactory = messageBrokerFactory;
+    getLogger(): ILogger {
+        return this.logger;
     }
 
     getQueueNames(): Array<string> {
@@ -49,7 +53,7 @@ export class Processor implements IProcessor {
             return this.resources.get(resourceName);
         }
         catch (err) {
-            this.l.log(`resource \"resourceName\" is not available`);
+            this.logger.log(`resource \"resourceName\" is not available`);
             return undefined;
         }
     }
@@ -86,14 +90,14 @@ export class Processor implements IProcessor {
                     this.commands.set(commandInfo.name, command);
                 }
                 else
-                    this.l.log(`Error: file for command \"${commandInfo.name}\" does not exists`);
+                    this.logger.log(`Error: file for command \"${commandInfo.name}\" does not exists`);
             }
 
             if (command)
                 await command.executeCommand(commandInfo.args, this as IProcessor, messageInfo);
         }
         catch (err) {
-            this.l.log(err);
+            this.logger.log(err);
         }
     }
 
@@ -103,13 +107,13 @@ export class Processor implements IProcessor {
     private async createPublishers(): Promise<void> {
         for (let i = 0; i < this.queueNames.length; i++)
             this.publishers.set(this.queueNames[i],
-                await this.messageBrokerFactory.startPublisher(this.queueNames[i], this.l, true));
+                await this.messageBrokerFactory.startPublisher(this.queueNames[i], this.logger, true));
     }
 
     private async startConsumers(): Promise<void> {
         let promises = new Array<Promise<IConsumer>>();
         for (let i = 0; i < this.queueNames.length; i++)
-            promises.push(this.messageBrokerFactory.startConsumer(this.queueNames[i], this.l,
+            promises.push(this.messageBrokerFactory.startConsumer(this.queueNames[i], this.logger,
                 async (item: any) => await this.getCommandFromQueueItemAndExecute(item)));
                     
         await Promise.all(promises);
@@ -126,7 +130,7 @@ export class Processor implements IProcessor {
                 await this.getAndExecuteCommand(commandInfo, messageInfo);
         }
         catch (err) {
-            this.l.log(err);
+            this.logger.log(err);
         }
     }
 
@@ -143,7 +147,7 @@ export class Processor implements IProcessor {
             await Promise.all(promises);
         }
         catch (err) {
-            this.l.log(err);
+            this.logger.log(err);
         }
     }
 

@@ -1,7 +1,9 @@
 import { ILogger } from "../interfaces/ilogger";
 
-export class Logger implements ILogger {
+export function createLogger(): ILogger { return new Logger(); }
+
+class Logger implements ILogger {
     log(msg: string): void {
         console.log(`* ${msg}`);
-}
+    }
 }

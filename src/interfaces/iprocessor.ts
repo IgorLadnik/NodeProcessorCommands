@@ -1,9 +1,9 @@
 import { CommandInfo } from '../models/commandInfo';
-import { IMessageBrokerFactory } from './messageInterfaces';
+import { ILogger } from './ilogger';
 import { MessageInfo } from '../models/messageInfo';
 
 export interface IProcessor {
-    createMessageBrokerFactory(messageBrokerFactory: IMessageBrokerFactory): void;
+    getLogger(): ILogger;
     getQueueNames(): Array<string>;
     publish(queueName: string, commandInfo: CommandInfo, persistent: boolean): Promise<void>;
     publishMany(queueName: string, arrCommandInfo: Array<CommandInfo>, persistent: boolean): Promise<void>;

@@ -4,8 +4,7 @@ import { IProcessor } from '../interfaces/iprocessor';
 
 export async function executeCommand(args: any, processor: IProcessor, messageInfo: MessageInfo): Promise<void> {
     const thisCommandName = 'cmdFirst';
-    let l = processor.getResource('logger');
-    //l.log(`${thisCommandName}: args: ${JSON.stringify(args)} | messageInfo: ${JSON.stringify(messageInfo)}`);
+    let logger = processor.getLogger();
 
     let recordset: Array<any> = [];
 
@@ -18,7 +17,7 @@ export async function executeCommand(args: any, processor: IProcessor, messageIn
     if (sql !== undefined) {
         let recordset = await sql.simpleQuery('*', 'Pets');
         processor.setResource('recordset', recordset);
-        l.log(`${thisCommandName}: args: ${JSON.stringify(recordset)} | messageInfo: ${JSON.stringify(messageInfo)}`);
+        logger.log(`${thisCommandName}: args: ${JSON.stringify(recordset)} | messageInfo: ${JSON.stringify(messageInfo)}`);
     }
 
     setTimeout(async () =>
