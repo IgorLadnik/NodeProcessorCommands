@@ -8,7 +8,7 @@ import { IMessageBrokerFactory, IPublisher, IConsumer } from '../interfaces/mess
 const fs = require('fs');
 
 export class Processor implements IProcessor {
-    private commandsDir: string;
+    private readonly commandsDir: string;
     private processorBootstrapCommandName = Config.processorBootstrapCommandName;
     private parallelCmdName = '';
 
@@ -29,10 +29,9 @@ export class Processor implements IProcessor {
     }
 
     async init(): Promise<Processor> {
-        this.messageBrokerFactory = (await import(`${this.workingDir}/${Config.messageBrokerFactoryFilePath}`))
-                                        .createMessageBrokerFactory();
-        this.logger = (await import(`${this.workingDir}/${Config.loggerFilePath}`)).createLogger();
-        await this.getAndExecuteCommand(new CommandInfo(this.processorBootstrapCommandName), new MessageInfo());
+        this.messageBrokerFactory = (await import(`${this.workingDir}/${Config.messageBrokerFactoryFilePath}`)).create();
+        this.logger = (await import(`${this.workingDir}/${Config.loggerFilePath}`)).create();
+        await this.executeCommand(new CommandInfo(this.processorBootstrapCommandName), new MessageInfo());
         await Promise.all([this.startConsumers(), this.createPublishers()]);
         return this;
     }
@@ -80,7 +79,7 @@ export class Processor implements IProcessor {
         await this.publish(queueName, new CommandInfo(this.parallelCmdName, arrCommandInfo), persistent);
     }
 
-    async getAndExecuteCommand(commandInfo: CommandInfo, messageInfo: MessageInfo): Promise<void> {
+    async executeCommand(commandInfo: CommandInfo, messageInfo: MessageInfo): Promise<void> {
         try {
             let command: any = this.commands.get(commandInfo.name);
             if (!command) {
@@ -94,7 +93,7 @@ export class Processor implements IProcessor {
             }
 
             if (command)
-                await command.executeCommand(commandInfo.args, this as IProcessor, messageInfo);
+                await command.command(commandInfo.args, this as IProcessor, messageInfo);
         }
         catch (err) {
             this.logger.log(err);
@@ -127,7 +126,7 @@ export class Processor implements IProcessor {
             if (commandInfo.name === this.parallelCmdName)
                 await this.executeParallel(commandInfo.args);
             else
-                await this.getAndExecuteCommand(commandInfo, messageInfo);
+                await this.executeCommand(commandInfo, messageInfo);
         }
         catch (err) {
             this.logger.log(err);
@@ -142,7 +141,7 @@ export class Processor implements IProcessor {
 
         try {
             for (let i = 0; i < commandInfos.length; i++)
-                promises.push(this.getAndExecuteCommand(commandInfos[i], new MessageInfo()));
+                promises.push(this.executeCommand(commandInfos[i], new MessageInfo()));
 
             await Promise.all(promises);
         }

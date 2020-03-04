@@ -4,7 +4,7 @@ import { HttpServerProvider } from '../infrastructure/httpServerProvider';
 import { Config } from '../config';
 import {CommandInfo} from "../models/commandInfo";
 
-export async function executeCommand(args: any, processor: IProcessor, messageInfo: MessageInfo): Promise<void> {
+export async function command(args: any, processor: IProcessor, messageInfo: MessageInfo): Promise<void> {
     const thisCommandName = 'cmdHttpServer';
     let logger = processor.getLogger();
 
@@ -13,7 +13,7 @@ export async function executeCommand(args: any, processor: IProcessor, messageIn
     logger.log(`${thisCommandName}: port = ${port}`);
 
     httpServer.get('/', async (req: any, res: any) => {
-        await processor.getAndExecuteCommand(
+        await processor.executeCommand(
             new CommandInfo('cmdGetSample', {select: '*', from: 'Pets'}),
             new MessageInfo());
 

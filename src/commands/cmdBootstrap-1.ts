@@ -2,8 +2,8 @@ import { CommandInfo } from '../models/commandInfo';
 import { MessageInfo } from '../models/messageInfo';
 import { IProcessor } from "../interfaces/iprocessor";
 
-export async function executeCommand(args: any, processor: IProcessor, messageInfo: MessageInfo): Promise<void> {
-    await processor.getAndExecuteCommand(new CommandInfo('cmdHttpServer'), new MessageInfo());
+export async function command(args: any, processor: IProcessor, messageInfo: MessageInfo): Promise<void> {
+    await processor.executeCommand(new CommandInfo('cmdHttpServer'), new MessageInfo());
 
     let logger = processor.getLogger();
     logger.log('cmdBootstrap');

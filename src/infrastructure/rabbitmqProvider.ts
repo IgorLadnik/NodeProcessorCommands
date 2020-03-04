@@ -2,7 +2,7 @@ import { ILogger } from "../interfaces/ilogger";
 import { IMessageBrokerFactory, IPublisher, IConsumer } from '../interfaces/messageInterfaces';
 let amqp = require('amqplib');
 
-export function createMessageBrokerFactory(): IMessageBrokerFactory { return new MessageBrokerFactory(); }
+export function create(): IMessageBrokerFactory { return new MessageBrokerFactory(); }
 
 class MessageBrokerFactory implements IMessageBrokerFactory {
     async startPublisher(queueName: string, l: ILogger, shouldPurge: boolean): Promise<IPublisher> {
