@@ -1,8 +1,8 @@
 import { IProcessor } from '../interfaces/iprocessor';
 import { ILogger } from '../interfaces/ilogger';
 import { Dictionary } from 'dictionaryjs';
-import { CommandInfo } from '../models/commandinfo';
-import { MessageInfo } from '../models/messageInfo';
+import { Command } from '../models/command';
+import { Message } from '../models/message';
 import { Config } from '../config';
 import { IMessageBrokerFactory, IPublisher, IConsumer } from '../interfaces/messageInterfaces';
 import { v4 as uuidv4 } from 'uuid';
@@ -23,7 +23,7 @@ export class Processor implements IProcessor {
     private readonly commandNames = new Dictionary<string, string>();
     private readonly workingDir: string;
 
-    private static defaultMessageInfo = new MessageInfo();
+    private static defaultMessage = new Message();
 
     constructor(workingDir: string) {
         this.id = `processor-${uuidv4()}`;
@@ -37,7 +37,7 @@ export class Processor implements IProcessor {
         this.messageBrokerFactory = (await import(`${this.workingDir}/${Config.messageBrokerFactoryFilePath}`)).create();
         this.logger = (await import(`${this.workingDir}/${Config.loggerFilePath}`)).create();
         await Promise.all([this.startConsumers(), this.createPublishers()]);
-        await this.executeOne(new CommandInfo(this.processorBootstrapCommandName));
+        await this.executeOne(new Command(this.processorBootstrapCommandName));
         return this;
     }
 
@@ -75,50 +75,50 @@ export class Processor implements IProcessor {
 
     // Public execute commands methods
 
-    async execute(...arrCommandInfo: Array<CommandInfo>): Promise<void> {
-        for (let i = 0; i < arrCommandInfo.length; i++)
-            await (this.executeOne(arrCommandInfo[i]));
+    async execute(...arrCommand: Array<Command>): Promise<void> {
+        for (let i = 0; i < arrCommand.length; i++)
+            await (this.executeOne(arrCommand[i]));
     }
 
-    async executeParallel(...arrCommandInfo: Array<CommandInfo>): Promise<void> {
+    async executeParallel(...arrCommand: Array<Command>): Promise<void> {
         let promises = new Array<Promise<void>>();
-        for (let i = 0; i < arrCommandInfo.length; i++)
-            promises.push(this.executeOne(arrCommandInfo[i]));
+        for (let i = 0; i < arrCommand.length; i++)
+            promises.push(this.executeOne(arrCommand[i]));
 
         await Promise.all(promises);
     }
 
     // Publish methods
 
-    async publish(queueName: string, ...arrCommandInfo: Array<CommandInfo>)
+    async publish(queueName: string, ...arrCommand: Array<Command>)
             : Promise<void> {
-        await this.publishers.get(queueName).publish<CommandInfo>(queueName, arrCommandInfo, true);
+        await this.publishers.get(queueName).publish<Command>(queueName, arrCommand, true);
     }
 
-    async publishParallel(queueName: string, ...arrCommandInfo: Array<CommandInfo>)
+    async publishParallel(queueName: string, ...arrCommand: Array<Command>)
             : Promise<void> {
-        await this.publishOne(queueName, new CommandInfo(this.parallelCmdName, arrCommandInfo), true);
+        await this.publishOne(queueName, new Command(this.parallelCmdName, arrCommand), true);
     }
 
 
     // Private methods
 
-    private async executeOne(commandInfo: CommandInfo, messageInfo: MessageInfo = Processor.defaultMessageInfo)
+    private async executeOne(command: Command, message: Message = Processor.defaultMessage)
                 : Promise<void> {
         try {
-            let command: any = this.commands.get(commandInfo.name);
-            if (!command) {
-                let actualCommandFileName = this.commandNames.get(commandInfo.name);
+            let cmd: any = this.commands.get(command.name);
+            if (!cmd) {
+                let actualCommandFileName = this.commandNames.get(command.name);
                 if (actualCommandFileName) {
-                    command = await import(actualCommandFileName);
-                    this.commands.set(commandInfo.name, command);
+                    cmd = await import(actualCommandFileName);
+                    this.commands.set(command.name, cmd);
                 }
                 else
-                    this.logger.log(`Error: file for command \"${commandInfo.name}\" does not exists`);
+                    this.logger.log(`Error: file for command \"${command.name}\" does not exists`);
             }
 
-            if (command)
-                await command.command(commandInfo.args, this as IProcessor, messageInfo);
+            if (cmd)
+                await cmd.command(command.args, this as IProcessor, message);
         }
         catch (err) {
             this.logger.log(err);
@@ -140,42 +140,25 @@ export class Processor implements IProcessor {
         await Promise.all(promises);
     }
 
-    private async publishOne(queueName: string, commandInfo: CommandInfo, persistent: boolean)
+    private async publishOne(queueName: string, command: Command, persistent: boolean)
         : Promise<void> {
-        await this.publishers.get(queueName).publishOne<CommandInfo>(queueName, commandInfo, persistent);
+        await this.publishers.get(queueName).publishOne<Command>(queueName, command, persistent);
     }
 
     private async getCommandFromQueueMessageAndExecute(item: any): Promise<void> {
         let _ = item.fields;
         try {
-            let messageInfo = new MessageInfo(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
-            let commandInfo: CommandInfo = JSON.parse(item.content.toString());
-            if (commandInfo.name === this.parallelCmdName)
-                await this.executeParallel(...commandInfo.args);
+            let message = new Message(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
+            let command: Command = JSON.parse(item.content.toString());
+            if (command.name === this.parallelCmdName)
+                await this.executeParallel(...command.args);
             else
-                await this.executeOne(commandInfo, messageInfo);
+                await this.executeOne(command, message);
         }
         catch (err) {
             this.logger.log(err);
         }
     }
-
-    // private async executeParallel(args: any): Promise<void> {
-    //     let commandInfos: Array<CommandInfo> = args;
-    //     let promises: Array<Promise<any>> = [];
-    //     if (!commandInfos)
-    //         return;
-    //
-    //     try {
-    //         for (let i = 0; i < commandInfos.length; i++)
-    //             promises.push(this.executeCommand(commandInfos[i], new MessageInfo()));
-    //
-    //         await Promise.all(promises);
-    //     }
-    //     catch (err) {
-    //         this.logger.log(err);
-    //     }
-    // }
 
     private createCommandFileLookup() {
         fs.readdirSync(this.commandsDir).forEach((fileName: string) => {

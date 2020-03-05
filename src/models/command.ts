@@ -1,4 +1,4 @@
-export class CommandInfo {
+export class Command {
     name: string;
     args: any;
     

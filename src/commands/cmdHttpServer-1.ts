@@ -1,10 +1,10 @@
-import { MessageInfo } from '../models/messageInfo';
+import { Message } from '../models/message';
+import { Command } from "../models/command";
 import { IProcessor } from "../interfaces/iprocessor";
 import { HttpServerProvider } from '../infrastructure/httpServerProvider';
 import { Config } from '../config';
-import {CommandInfo} from "../models/commandInfo";
 
-export async function command(args: any, processor: IProcessor, messageInfo: MessageInfo): Promise<void> {
+export async function command(args: any, processor: IProcessor, message: Message): Promise<void> {
     const thisCommandName = 'cmdHttpServer';
     let logger = processor.getLogger();
 
@@ -13,7 +13,7 @@ export async function command(args: any, processor: IProcessor, messageInfo: Mes
     logger.log(`${thisCommandName}: port = ${port}`);
 
     httpServer.get('/', async (req: any, res: any) => {
-        await processor.execute(new CommandInfo('cmdGetSample', {select: '*', from: 'Pets'}));
+        await processor.execute(new Command('cmdGetSample', {select: '*', from: 'Pets'}));
 
         let recordset = processor.getResource('recordset');
         if (recordset) {

@@ -1,4 +1,4 @@
-export class MessageInfo {
+export class Message {
     exchange:    string;
     queueName:   string;
     consumerTag: string;
