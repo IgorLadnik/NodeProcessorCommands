@@ -10,6 +10,7 @@ export interface IProcessor {
     // get / set custom resources from / to processor
     getResource(resourceName: string): any
     setResource(resourceName: string, resource: any): void;
+    deleteResource(resourceName: string): void;
 
     // Immediate execution of commands
     execute(...commands: Array<Command>): Promise<void>;

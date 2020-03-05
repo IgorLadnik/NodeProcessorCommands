@@ -56,6 +56,8 @@ export class Processor implements IProcessor {
         return this.queueNames;
     }
 
+    // Resources
+
     getResource(resourceName: string): any {
         try {
             return this.resources.get(resourceName);
@@ -69,7 +71,10 @@ export class Processor implements IProcessor {
     setResource(resourceName: string, resource: any): void {
         if (resource !== undefined)
             this.resources.set(resourceName, resource);
-        else
+    }
+
+    deleteResource(resourceName: string): void {
+        if (this.getResource(resourceName))
             this.resources.remove(resourceName);
     }
 

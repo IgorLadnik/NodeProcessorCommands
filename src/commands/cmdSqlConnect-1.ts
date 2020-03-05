@@ -3,7 +3,7 @@ import { IProcessor } from "../interfaces/iprocessor";
 import { Message } from "../models/message";
 import { Config } from '../config';
 
-export async function command(args: any, processor: IProcessor, message: Message): Promise<void> {
+export async function command(args: any, processor: IProcessor/*, message: Message*/): Promise<void> {
     let logger = processor.getLogger();
     logger.log(`cmdSqlConnect: args: ${JSON.stringify(args)}`);
 
