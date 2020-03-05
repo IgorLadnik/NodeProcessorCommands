@@ -1,5 +1,3 @@
-import {SqlServerProvider} from "./infrastructure/sqlServerProvider";
-
 export class Config {
     // PROCESSOR CONFIGURATION - MANDATORY
     // Logging
@@ -24,3 +22,5 @@ export class Config {
     static readonly sqlDatabase: string = 'PetsDb';
     static readonly port: number = 19019;
 }
+
+//
