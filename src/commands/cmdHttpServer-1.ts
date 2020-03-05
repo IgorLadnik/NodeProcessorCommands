@@ -13,9 +13,7 @@ export async function command(args: any, processor: IProcessor, messageInfo: Mes
     logger.log(`${thisCommandName}: port = ${port}`);
 
     httpServer.get('/', async (req: any, res: any) => {
-        await processor.executeCommand(
-            new CommandInfo('cmdGetSample', {select: '*', from: 'Pets'}),
-            new MessageInfo());
+        await processor.execute(new CommandInfo('cmdGetSample', {select: '*', from: 'Pets'}));
 
         let recordset = processor.getResource('recordset');
         if (recordset) {

@@ -69,7 +69,7 @@ class Publisher extends Connection implements IPublisher {
         return this;
     }
 
-    async publishAny(queueName: string, content: any, persistent: boolean = false): Promise<void> {
+    async publishOneAny(queueName: string, content: any, persistent: boolean = false): Promise<void> {
         try {
             await this.channel.sendToQueue(queueName, content, {persistent});
         }
@@ -78,14 +78,14 @@ class Publisher extends Connection implements IPublisher {
         }
     }
 
-    async publish<T>(queueName: string, t: T, persistent: boolean = false): Promise<void> {
-        await this.publishAny(queueName, Buffer.from(JSON.stringify(t)), persistent);
+    async publishOne<T>(queueName: string, t: T, persistent: boolean = false): Promise<void> {
+        await this.publishOneAny(queueName, Buffer.from(JSON.stringify(t)), persistent);
     }
 
-    async publishMany<T>(queueName: string, arrT: Array<T>, persistent: boolean = false): Promise<void> {
+    async publish<T>(queueName: string, arrT: Array<T>, persistent: boolean = false): Promise<void> {
         let promises = new Array<Promise<void>>();
         for (let i = 0; i < arrT.length; i++)
-            promises.push(this.publish<T>(queueName, arrT[i], persistent));
+            promises.push(this.publishOne<T>(queueName, arrT[i], persistent));
 
         await Promise.all(promises);
     }

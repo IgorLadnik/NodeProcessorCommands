@@ -8,7 +8,7 @@ export async function command(args: any, processor: IProcessor, messageInfo: Mes
 
     let sql = processor.getResource('sql');
     if (sql === undefined) {
-        await processor.executeCommand(new CommandInfo('cmdSqlConnect'), new MessageInfo());
+        await processor.execute(new CommandInfo('cmdSqlConnect'));
         sql = processor.getResource('sql');
     }
 

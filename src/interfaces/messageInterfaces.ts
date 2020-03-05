@@ -6,8 +6,8 @@ export interface IMessageBrokerFactory {
 }
 
 export interface IPublisher {
-    publish<T>(queueName: string, t: T, persistent: boolean): Promise<void>;
-    publishMany<T>(queueName: string, arrT: Array<T>, persistent: boolean): Promise<void>;
+    publishOne<T>(queueName: string, t: T, persistent: boolean): Promise<void>;
+    publish<T>(queueName: string, arrT: Array<T>, persistent: boolean): Promise<void>;
 }
 
 export interface IConsumer {
