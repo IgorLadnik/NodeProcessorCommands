@@ -21,9 +21,10 @@ export class Processor implements IProcessor {
     private readonly workingDir: string;
 
     private processorBootstrapCommandName = Config.processorBootstrapCommandName;
-    private queueNames: Array<string>;
+    private queueNames = new Array<string>();
     private logger: ILogger;
     private messageBrokerFactory: IMessageBrokerFactory;
+    private isPubCons: boolean = false;
 
     constructor(workingDir: string) {
         this.id = `processor-${uuidv4()}`;
@@ -35,15 +36,19 @@ export class Processor implements IProcessor {
     async init(): Promise<Processor> {
         this.logger = (await import(`${this.workingDir}/${Config.loggerFilePath}`)).create();
         this.logger.log(`Processor ${this.id} started`);
-        try {
-            this.queueNames = Config.queueNames;
-            this.messageBrokerFactory = (await import(`${this.workingDir}/${Config.messageBrokerFactoryFilePath}`)).create();
-            await Promise.all([this.startConsumers(), this.createPublishers()]);
-            this.logger.log('Publish / Consume supported');
+        if (Config.messageBrokerFactoryFilePath && Config.queueNames && Config.queueNames.length > 0) {
+            try {
+                this.messageBrokerFactory = (await import(`${this.workingDir}/${Config.messageBrokerFactoryFilePath}`)).create();
+                this.queueNames = Config.queueNames;
+                await Promise.all([this.startConsumers(), this.createPublishers()]);
+                this.isPubCons = true;
+                this.logger.log('Publish / Consume is supported');
+            } catch (err) {
+                this.logger.log('Publish / Consume is NOT supported');
+            }
         }
-        catch (err) {
-            this.logger.log('Publish / Consume is not supported');
-        }
+        else
+            this.logger.log('Publish / Consume is NOT supported');
 
         this.logger.log(`Processor \"${this.id}\" initialized and runs its bootstrap command \"${this.processorBootstrapCommandName}\"`);
 
@@ -104,6 +109,10 @@ export class Processor implements IProcessor {
     }
 
     // Publish methods
+
+    isPublishConsumeSupported(): boolean {
+        return this.isPubCons;
+    }
 
     async publish(queueName: string, ...arrCommand: Array<Command>): Promise<void> {
         if (!this.messageBrokerFactory)

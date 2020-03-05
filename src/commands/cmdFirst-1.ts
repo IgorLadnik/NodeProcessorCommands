@@ -23,12 +23,14 @@ export async function command(args: any, processor: IProcessor, message: Message
     else
         logger.log('Error: SQL database with table \"${dbTable}\"is not available');
 
-    setTimeout(async () => await processor.publish(message.queueName,
+    if (processor.isPublishConsumeSupported()) {
+        setTimeout(async () => await processor.publish(message.queueName,
             new Command(thisCommandName, recordset[message.deliveryTag % recordset.length]))
-    , 1000);
+            , 1000);
 
-    // await processor.publish(messageInfo.queueName,
-    //     new CommandInfo(thisCommandName, recordset[messageInfo.deliveryTag % recordset.length]), false);
+        // await processor.publish(messageInfo.queueName,
+        //     new CommandInfo(thisCommandName, recordset[messageInfo.deliveryTag % recordset.length]), false);
+    }
 }
 
 

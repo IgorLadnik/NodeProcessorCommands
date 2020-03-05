@@ -17,6 +17,7 @@ export interface IProcessor {
     executeParallel(...commands: Array<Command>): Promise<void>;
 
     // Queueing commands
+    isPublishConsumeSupported(): boolean;
     publish(queueName: string, ...commands: Array<Command>): Promise<void>;
     publishParallel(queueName: string, ...commands: Array<Command>) : Promise<void>;
 }
