@@ -9,34 +9,44 @@ import { v4 as uuidv4 } from 'uuid';
 const fs = require('fs');
 
 export class Processor implements IProcessor {
+    private static defaultMessage = new Message();
+
     private readonly id: string;
     private readonly parallelCmdName = '';
     private readonly commandsDir: string;
-    private processorBootstrapCommandName = Config.processorBootstrapCommandName;
-
     private readonly commands = new Dictionary<string, any>();
-    private readonly queueNames: Array<string>;
     private readonly publishers = new Dictionary<string, IPublisher>();
     private readonly resources = new Dictionary<string, any>();
-    private logger: ILogger;
-    private messageBrokerFactory: IMessageBrokerFactory;
     private readonly commandNames = new Dictionary<string, string>();
     private readonly workingDir: string;
 
-    private static defaultMessage = new Message();
+    private processorBootstrapCommandName = Config.processorBootstrapCommandName;
+    private queueNames: Array<string>;
+    private logger: ILogger;
+    private messageBrokerFactory: IMessageBrokerFactory;
 
     constructor(workingDir: string) {
         this.id = `processor-${uuidv4()}`;
         this.workingDir = workingDir;
         this.commandsDir = `${this.workingDir}/${Config.commandsDir}/`;
-        this.queueNames = Config.queueNames;
         this.createCommandFileLookup();
     }
 
     async init(): Promise<Processor> {
-        this.messageBrokerFactory = (await import(`${this.workingDir}/${Config.messageBrokerFactoryFilePath}`)).create();
         this.logger = (await import(`${this.workingDir}/${Config.loggerFilePath}`)).create();
-        await Promise.all([this.startConsumers(), this.createPublishers()]);
+        this.logger.log(`Processor ${this.id} started`);
+        try {
+            this.queueNames = Config.queueNames;
+            this.messageBrokerFactory = (await import(`${this.workingDir}/${Config.messageBrokerFactoryFilePath}`)).create();
+            await Promise.all([this.startConsumers(), this.createPublishers()]);
+            this.logger.log('Publish / Consume supported');
+        }
+        catch (err) {
+            this.logger.log('Publish / Consume is not supported');
+        }
+
+        this.logger.log(`Processor \"${this.id}\" initialized and runs its bootstrap command \"${this.processorBootstrapCommandName}\"`);
+
         await this.executeOne(new Command(this.processorBootstrapCommandName));
         return this;
     }
@@ -95,21 +105,22 @@ export class Processor implements IProcessor {
 
     // Publish methods
 
-    async publish(queueName: string, ...arrCommand: Array<Command>)
-            : Promise<void> {
+    async publish(queueName: string, ...arrCommand: Array<Command>): Promise<void> {
+        if (!this.messageBrokerFactory)
+            return;
         await this.publishers.get(queueName).publish<Command>(queueName, arrCommand, true);
     }
 
-    async publishParallel(queueName: string, ...arrCommand: Array<Command>)
-            : Promise<void> {
+    async publishParallel(queueName: string, ...arrCommand: Array<Command>): Promise<void> {
+        if (!this.messageBrokerFactory)
+            return;
         await this.publishOne(queueName, new Command(this.parallelCmdName, arrCommand), true);
     }
 
 
     // Private methods
 
-    private async executeOne(command: Command, message: Message = Processor.defaultMessage)
-                : Promise<void> {
+    private async executeOne(command: Command, message: Message = Processor.defaultMessage): Promise<void> {
         try {
             let cmd: any = this.commands.get(command.name);
             if (!cmd) {
@@ -131,12 +142,16 @@ export class Processor implements IProcessor {
     }
 
     private async createPublishers(): Promise<void> {
+        if (!this.messageBrokerFactory)
+            return;
         for (let i = 0; i < this.queueNames.length; i++)
             this.publishers.set(this.queueNames[i],
                 await this.messageBrokerFactory.startPublisher(this.queueNames[i], this.logger, true));
     }
 
     private async startConsumers(): Promise<void> {
+        if (!this.messageBrokerFactory)
+            return;
         let promises = new Array<Promise<IConsumer>>();
         for (let i = 0; i < this.queueNames.length; i++)
             promises.push(this.messageBrokerFactory.startConsumer(this.queueNames[i], this.logger,
@@ -145,8 +160,7 @@ export class Processor implements IProcessor {
         await Promise.all(promises);
     }
 
-    private async publishOne(queueName: string, command: Command, persistent: boolean)
-        : Promise<void> {
+    private async publishOne(queueName: string, command: Command, persistent: boolean): Promise<void> {
         await this.publishers.get(queueName).publishOne<Command>(queueName, command, persistent);
     }
 

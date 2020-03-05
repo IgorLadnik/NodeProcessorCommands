@@ -3,10 +3,10 @@ import { Message } from '../models/message';
 import { IProcessor } from "../interfaces/iprocessor";
 
 export async function command(args: any, processor: IProcessor/*, message: Message*/): Promise<void> {
-    await processor.execute(new Command('cmdHttpServer'));
-
     let logger = processor.getLogger();
     logger.log('cmdBootstrap');
+
+    await processor.execute(new Command('cmdHttpServer'));
 
     // TEST stuff
     await processor.executeParallel(
