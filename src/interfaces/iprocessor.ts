@@ -12,12 +12,18 @@ export interface IProcessor {
     setResource(resourceName: string, resource: any): void;
     deleteResource(resourceName: string): void;
 
+    // set return value
+    setRetVal(retVal: any): void;
+    setRetValTrue(): void;
+    setRetValFalse(): void;
+
     // Immediate execution of commands
     execute(...commands: Array<Command>): Promise<void>;
     executeParallel(...commands: Array<Command>): Promise<void>;
+    executeRepetitive(command: Command, commandFailback: Command): Promise<boolean>;
 
     // Queueing commands
-    isPublishConsumeSupported(): boolean;
+    isMessageBrokerSupported(): boolean;
     publish(queueName: string, ...commands: Array<Command>): Promise<void>;
-    publishParallel(queueName: string, ...commands: Array<Command>) : Promise<void>;
+    publishParallel(queueName: string, ...commands: Array<Command>): Promise<void>;
 }

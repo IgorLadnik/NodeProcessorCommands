@@ -1,21 +1,22 @@
 import { Command } from '../models/command';
 import { Message } from '../models/message';
 import { IProcessor } from '../interfaces/iprocessor';
+import { Utils } from "../infrastructure/utils";
 
-export async function command(args: any, processor: IProcessor, message: Message): Promise<void> {
+export async function command(args: any, p: IProcessor, message: Message): Promise<void> {
     const thisCommandName = 'cmdGetSample';
-    let logger = processor.getLogger();
+    let logger = p.getLogger();
 
-    let sql = processor.getResource('sql');
-    if (sql === undefined) {
-        await processor.execute(new Command('cmdSqlConnect'));
-        sql = processor.getResource('sql');
+    let sql = p.getResource('sql');
+    if (!Utils.isDefined(sql)) {
+        await p.execute(new Command('cmdSqlConnect'));
+        sql = p.getResource('sql');
     }
 
-    if (sql !== undefined) {
+    if (Utils.isDefined(sql)) {
         let recordset = await sql.simpleQuery(args.select, args.from);
-        processor.setResource('recordset', recordset);
-        logger.log(`${thisCommandName}: args: ${JSON.stringify(recordset)} | messageInfo: ${JSON.stringify(message)}`);
+        p.setResource('recordset', recordset);
+        logger.log(`${thisCommandName}: args: ${JSON.stringify(recordset)} | message: ${JSON.stringify(message)}`);
     }
 }
 

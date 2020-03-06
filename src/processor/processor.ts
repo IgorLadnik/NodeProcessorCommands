@@ -19,6 +19,7 @@ export class Processor implements IProcessor {
     private readonly resources = new Dictionary<string, any>();
     private readonly commandNames = new Dictionary<string, string>();
     private readonly workingDir: string;
+    private readonly retValName = '__retVal';
 
     private processorBootstrapCommandName = Config.processorBootstrapCommandName;
     private queueNames = new Array<string>();
@@ -59,17 +60,11 @@ export class Processor implements IProcessor {
 
     // Implementation of IProcessor
 
-    getId(): string {
-        return this.id;
-    }
+    getId = (): string => this.id;
 
-    getLogger(): ILogger {
-        return this.logger;
-    }
+    getLogger = (): ILogger => this.logger;
 
-    getQueueNames(): Array<string> {
-        return this.queueNames;
-    }
+    getQueueNames = (): Array<string> => this.queueNames;
 
     // Resources
 
@@ -83,49 +78,65 @@ export class Processor implements IProcessor {
         }
     }
 
-    setResource(resourceName: string, resource: any): void {
-        if (resource !== undefined)
-            this.resources.set(resourceName, resource);
-    }
+    setResource = (resourceName: string, resource: any): void => this.resources.set(resourceName, resource);
 
     deleteResource(resourceName: string): void {
         if (this.getResource(resourceName))
             this.resources.remove(resourceName);
     }
 
+    // Set return value
+
+    setRetVal = (retVal: any): void => this.setResource(this.retValName, retVal);
+    setRetValTrue = (): void => this.setResource(this.retValName, true);
+    setRetValFalse = (): void => this.setResource(this.retValName, false);
+
     // Public execute commands methods
 
-    async execute(...arrCommand: Array<Command>): Promise<void> {
-        for (let i = 0; i < arrCommand.length; i++)
-            await (this.executeOne(arrCommand[i]));
+    async execute(...commands: Array<Command>): Promise<void> {
+        for (let i = 0; i < commands.length; i++)
+            await (this.executeOne(commands[i]));
     }
 
-    async executeParallel(...arrCommand: Array<Command>): Promise<void> {
+    async executeParallel(...commands: Array<Command>): Promise<void> {
         let promises = new Array<Promise<void>>();
-        for (let i = 0; i < arrCommand.length; i++)
-            promises.push(this.executeOne(arrCommand[i]));
+        for (let i = 0; i < commands.length; i++)
+            promises.push(this.executeOne(commands[i]));
 
         await Promise.all(promises);
     }
 
     // Publish methods
 
-    isPublishConsumeSupported(): boolean {
-        return this.isPubCons;
-    }
+    isMessageBrokerSupported = (): boolean => this.isPubCons;
 
-    async publish(queueName: string, ...arrCommand: Array<Command>): Promise<void> {
+    async publish(queueName: string, ...commands: Array<Command>): Promise<void> {
         if (!this.messageBrokerFactory)
             return;
-        await this.publishers.get(queueName).publish<Command>(queueName, arrCommand, true);
+        await this.publishers.get(queueName).publish<Command>(queueName, commands, true);
     }
 
-    async publishParallel(queueName: string, ...arrCommand: Array<Command>): Promise<void> {
+    async publishParallel(queueName: string, ...commands: Array<Command>): Promise<void> {
         if (!this.messageBrokerFactory)
             return;
-        await this.publishOne(queueName, new Command(this.parallelCmdName, arrCommand), true);
+        await this.publishOne(queueName, new Command(this.parallelCmdName, commands), true);
     }
 
+    async executeRepetitive(command: Command, commandFailback: Command): Promise<boolean> {
+        const resourceName = this.retValName;
+        let cmdResult = false;
+        for (let i = 0; i < 2; i++) {
+            await this.execute(command);
+            if ((cmdResult = this.getResource(resourceName)) === false) {
+                await this.execute(commandFailback);
+            }
+            else
+                break;
+        }
+
+        this.deleteResource(resourceName);
+        return cmdResult;
+    }
 
     // Private methods
 
@@ -169,9 +180,8 @@ export class Processor implements IProcessor {
         await Promise.all(promises);
     }
 
-    private async publishOne(queueName: string, command: Command, persistent: boolean): Promise<void> {
+    private publishOne = async (queueName: string, command: Command, persistent: boolean): Promise<void> =>
         await this.publishers.get(queueName).publishOne<Command>(queueName, command, persistent);
-    }
 
     private async getCommandFromQueueMessageAndExecute(item: any): Promise<void> {
         let _ = item.fields;
@@ -188,15 +198,14 @@ export class Processor implements IProcessor {
         }
     }
 
-    private createCommandFileLookup() {
+    private createCommandFileLookup = () =>
         fs.readdirSync(this.commandsDir).forEach((fileName: string) => {
             let _ = Processor.parseFileName(fileName);
             if (Processor.checkOnVersion(_))
                 this.commandNames.set(_.name, `${this.commandsDir}${fileName}`);
         });
-    }
 
-    private static parseFileName(fileName: string): any  {
+    private static parseFileName(fileName: string): any {
         let ss0 = fileName.split('-');
         let name = ss0[0];
         let ss1 = ss0[1].split('.');
@@ -206,9 +215,8 @@ export class Processor implements IProcessor {
         return { name, version, ext, extMap };
     }
 
-    private static checkOnVersion(_: any): boolean {
-        return Config.versionMin <= _.version && _.version <= Config.versionMax
-               && _.ext.toLowerCase() === 'js' && _.extMap === '';
-    }
+    private static checkOnVersion = (_: any): boolean =>
+        Config.versionMin <= _.version && _.version <= Config.versionMax
+        && _.ext.toLowerCase() === 'js' && _.extMap === '';
 }
 

@@ -1,15 +1,14 @@
-import { Message } from '../models/message';
 import { Command } from "../models/command";
 import { IProcessor } from "../interfaces/iprocessor";
 import { HttpServerProvider } from '../infrastructure/httpServerProvider';
 import { Config } from '../config';
 
-export async function command(args: any, processor: IProcessor/*, message: Message*/): Promise<void> {
+export async function command(args: any, processor: IProcessor): Promise<void> {
     const thisCommandName = 'cmdHttpServer';
     let logger = processor.getLogger();
 
     const port = Config.port;
-    const httpServer = new HttpServerProvider(port as number, logger).server;
+    const httpServer = new HttpServerProvider(port, logger).server;
     logger.log(`${thisCommandName}: port = ${port}`);
 
     httpServer.get('/', async (req: any, res: any) => {
