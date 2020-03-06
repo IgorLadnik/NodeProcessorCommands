@@ -1,7 +1,7 @@
 import { Command } from '../models/command';
 import { IProcessor } from "../interfaces/iprocessor";
 
-export async function command(args: any, p: IProcessor): Promise<void> {
+export async function command(args: any, p: IProcessor): Promise<boolean> {
     const thisCommandName = 'cmdBootstrap';
     let logger = p.getLogger();
     logger.log(thisCommandName);
@@ -12,14 +12,15 @@ export async function command(args: any, p: IProcessor): Promise<void> {
         new Command('cmdFirstFetch', {a: 'aaa', n: 1}),
         new Command('cmdSqlConnect'))) {
             logger.log(`Error in command \"${thisCommandName}\": execution terminated`);
-            return;
+            return false;
     }
 
     // TEST stuff
-    await p.executeParallel(
+    if (!await p.executeParallel(
         new Command('cmdTestP', {order: 1}),
         new Command('cmdTestP', {order: 2}),
-        new Command('cmdTestP', {order: 3}));
+        new Command('cmdTestP', {order: 3})))
+            return false;
 
     if (p.isMessageBrokerSupported()) {
         setInterval(async () =>
@@ -35,6 +36,8 @@ export async function command(args: any, p: IProcessor): Promise<void> {
                     new Command('cmdTestP', {order: 3})),
             1370);
     }
+
+    return true;
 }
 
 

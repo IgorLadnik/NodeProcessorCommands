@@ -3,7 +3,7 @@ import { IProcessor } from "../interfaces/iprocessor";
 import { HttpServerProvider } from '../infrastructure/httpServerProvider';
 import { Config } from '../config';
 
-export async function command(args: any, processor: IProcessor): Promise<void> {
+export async function command(args: any, processor: IProcessor): Promise<boolean> {
     const thisCommandName = 'cmdHttpServer';
     let logger = processor.getLogger();
 
@@ -42,4 +42,6 @@ export async function command(args: any, processor: IProcessor): Promise<void> {
             }
         }, 1);
     });
+
+    return true;
 }

@@ -12,14 +12,9 @@ export interface IProcessor {
     setResource(resourceName: string, resource: any): void;
     deleteResource(resourceName: string): void;
 
-    // set return value
-    setRetVal(retVal: any): void;
-    setRetValTrue(): void;
-    setRetValFalse(): void;
-
     // Immediate execution of commands
-    execute(...commands: Array<Command>): Promise<void>;
-    executeParallel(...commands: Array<Command>): Promise<void>;
+    execute(...commands: Array<Command>): Promise<boolean>;
+    executeParallel(...commands: Array<Command>): Promise<boolean>;
     executeRepetitive(command: Command, commandFailback: Command): Promise<boolean>;
 
     // Queueing commands

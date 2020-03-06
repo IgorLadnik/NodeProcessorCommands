@@ -2,7 +2,7 @@ import { SqlServerProvider } from '../infrastructure/SqlServerProvider';
 import { IProcessor } from "../interfaces/iprocessor";
 import { Config } from '../config';
 
-export async function command(args: any, p: IProcessor): Promise<void> {
+export async function command(args: any, p: IProcessor): Promise<boolean> {
     let logger = p.getLogger();
     logger.log(`cmdSqlConnect: args: ${JSON.stringify(args)}`);
 
@@ -12,9 +12,11 @@ export async function command(args: any, p: IProcessor): Promise<void> {
     try {
         await sql.connect();
         p.setResource('sql', sql);
+        return true;
     }
     catch (err) {
         logger.log(err);
+        return false;
     }
 }
 

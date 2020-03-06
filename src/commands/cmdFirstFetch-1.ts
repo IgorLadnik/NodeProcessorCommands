@@ -2,16 +2,13 @@ import { Message } from '../models/message';
 import { IProcessor } from '../interfaces/iprocessor';
 import { Utils } from '../infrastructure/utils';
 
-export async function command(args: any, p: IProcessor, message: Message): Promise<void> {
+export async function command(args: any, p: IProcessor, message: Message): Promise<boolean> {
     const thisCommandName = 'cmdFirstFetch';
-
     let logger = p.getLogger();
 
     let sql = p.getResource('sql');
-    if (!Utils.isDefined(sql)) {
-        p.setRetValFalse();
-        return;
-     }
+    if (!Utils.isDefined(sql))
+        return false;
 
     const dbTable = 'Pets';
     let recordset = new Array<any>();
@@ -20,12 +17,11 @@ export async function command(args: any, p: IProcessor, message: Message): Promi
     }
     catch (err) {
         logger.log(`Error in command \"${thisCommandName}\": failed to execute query to table \"${dbTable}\"`);
-        p.setRetValFalse();
-        return;
+        return false;
     }
 
     p.setResource('recordset', recordset);
     logger.log(`${thisCommandName}: args: ${JSON.stringify(recordset)} | message: ${JSON.stringify(message)}`);
 
-    p.setRetValTrue();
+    return true;
 }

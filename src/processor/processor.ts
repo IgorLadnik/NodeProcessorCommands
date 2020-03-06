@@ -19,7 +19,6 @@ export class Processor implements IProcessor {
     private readonly resources = new Dictionary<string, any>();
     private readonly commandNames = new Dictionary<string, string>();
     private readonly workingDir: string;
-    private readonly retValName = '__retVal';
 
     private processorBootstrapCommandName = Config.processorBootstrapCommandName;
     private queueNames = new Array<string>();
@@ -53,7 +52,12 @@ export class Processor implements IProcessor {
 
         this.logger.log(`Processor \"${this.id}\" initialized and runs its bootstrap command \"${this.processorBootstrapCommandName}\"`);
 
-        await this.executeOne(new Command(this.processorBootstrapCommandName));
+        let msgPrefix = `Bootstrap command ${this.processorBootstrapCommandName}`;
+        if (await this.execute(new Command(this.processorBootstrapCommandName)))
+            this.logger.log(`${msgPrefix} successfully executed`);
+        else
+            this.logger.log(`Error: ${msgPrefix} has failed`);
+
         return this;
     }
 
@@ -85,25 +89,39 @@ export class Processor implements IProcessor {
             this.resources.remove(resourceName);
     }
 
-    // Set return value
-
-    setRetVal = (retVal: any): void => this.setResource(this.retValName, retVal);
-    setRetValTrue = (): void => this.setResource(this.retValName, true);
-    setRetValFalse = (): void => this.setResource(this.retValName, false);
-
     // Public execute commands methods
 
-    async execute(...commands: Array<Command>): Promise<void> {
+    async execute(...commands: Array<Command>): Promise<boolean> {
+        let br = true;
         for (let i = 0; i < commands.length; i++)
-            await (this.executeOne(commands[i]));
+            br = br && await (this.executeOne(commands[i]));
+
+        return br;
     }
 
-    async executeParallel(...commands: Array<Command>): Promise<void> {
-        let promises = new Array<Promise<void>>();
+    async executeParallel(...commands: Array<Command>): Promise<boolean> {
+        let br = true;
+        let promises = new Array<Promise<boolean>>();
         for (let i = 0; i < commands.length; i++)
             promises.push(this.executeOne(commands[i]));
 
-        await Promise.all(promises);
+        for (let i = 0; i < promises.length; i++)
+            br = br && await promises[i];
+
+        return br;
+    }
+
+    async executeRepetitive(command: Command, commandFailback: Command): Promise<boolean> {
+        for (let i = 0; i < 2; i++) {
+            let bbb: boolean = await this.execute(command);
+            if (await this.execute(command))
+                return true;
+
+            if (!await this.execute(commandFailback))
+                return false;
+        }
+
+        return false;
     }
 
     // Publish methods
@@ -122,25 +140,10 @@ export class Processor implements IProcessor {
         await this.publishOne(queueName, new Command(this.parallelCmdName, commands), true);
     }
 
-    async executeRepetitive(command: Command, commandFailback: Command): Promise<boolean> {
-        const resourceName = this.retValName;
-        let cmdResult = false;
-        for (let i = 0; i < 2; i++) {
-            await this.execute(command);
-            if ((cmdResult = this.getResource(resourceName)) === false) {
-                await this.execute(commandFailback);
-            }
-            else
-                break;
-        }
-
-        this.deleteResource(resourceName);
-        return cmdResult;
-    }
-
     // Private methods
 
-    private async executeOne(command: Command, message: Message = Processor.defaultMessage): Promise<void> {
+    private async executeOne(command: Command, message: Message = Processor.defaultMessage): Promise<boolean> {
+        let br = false;
         try {
             let cmd: any = this.commands.get(command.name);
             if (!cmd) {
@@ -154,11 +157,13 @@ export class Processor implements IProcessor {
             }
 
             if (cmd)
-                await cmd.command(command.args, this as IProcessor, message);
+                br = await cmd.command(command.args, this as IProcessor, message);
         }
         catch (err) {
             this.logger.log(err);
         }
+
+        return br;
     }
 
     private async createPublishers(): Promise<void> {
