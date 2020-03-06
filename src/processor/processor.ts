@@ -111,19 +111,6 @@ export class Processor implements IProcessor {
         return br;
     }
 
-    async executeRepetitive(command: Command, commandFailback: Command): Promise<boolean> {
-        for (let i = 0; i < 2; i++) {
-            let bbb: boolean = await this.execute(command);
-            if (await this.execute(command))
-                return true;
-
-            if (!await this.execute(commandFailback))
-                return false;
-        }
-
-        return false;
-    }
-
     // Publish methods
 
     isMessageBrokerSupported = (): boolean => this.isPubCons;

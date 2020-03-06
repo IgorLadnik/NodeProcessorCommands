@@ -8,12 +8,11 @@ export async function command(args: any, p: IProcessor): Promise<boolean> {
 
     await p.execute(new Command('cmdHttpServer'));
 
-    if (!await p.executeRepetitive(
-        new Command('cmdFirstFetch', {a: 'aaa', n: 1}),
-        new Command('cmdSqlConnect'))) {
-            logger.log(`Error in command \"${thisCommandName}\": execution terminated`);
-            return false;
-    }
+    let commandFirstFetch = new Command('cmdFirstFetch', {a: 'aaa', n: 1});
+    let br = false;
+    if (!await p.execute(commandFirstFetch))
+        if (await p.execute(new Command('cmdSqlConnect')))
+            br = await p.execute(commandFirstFetch);
 
     // TEST stuff
     if (!await p.executeParallel(

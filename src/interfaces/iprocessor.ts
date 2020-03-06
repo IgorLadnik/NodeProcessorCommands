@@ -15,7 +15,6 @@ export interface IProcessor {
     // Immediate execution of commands
     execute(...commands: Array<Command>): Promise<boolean>;
     executeParallel(...commands: Array<Command>): Promise<boolean>;
-    executeRepetitive(command: Command, commandFailback: Command): Promise<boolean>;
 
     // Queueing commands
     isMessageBrokerSupported(): boolean;
