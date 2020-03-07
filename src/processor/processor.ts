@@ -57,7 +57,7 @@ export class Processor implements IProcessor {
         this.logger.log(`Message broker is ${this.isPubCons ? '' : 'NOT '}supported`);
         this.logger.log(`Processor \"${this.id}\" initialized and runs its bootstrap command \"${this.processorBootstrapCommandName}\"`);
 
-        let msgPrefix = `Bootstrap command ${this.processorBootstrapCommandName}`;
+        let msgPrefix = `Bootstrap command \"${this.processorBootstrapCommandName}\"`;
         if (await this.execute(new Command(this.processorBootstrapCommandName)))
             this.logger.log(`${msgPrefix} successfully executed`);
         else
