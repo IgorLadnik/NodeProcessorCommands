@@ -6,6 +6,8 @@ import { Message } from '../models/message';
 import { Config } from '../config';
 import { IMessageBrokerFactory, IPublisher, IConsumer } from '../interfaces/messageInterfaces';
 import { v4 as uuidv4 } from 'uuid';
+import { Utils } from '../infrastructure/utils';
+const path = require('path');
 const fs = require('fs');
 
 export class Processor implements IProcessor {
@@ -20,27 +22,32 @@ export class Processor implements IProcessor {
     private readonly commandNames = new Dictionary<string, string>();
     private readonly workingDir: string;
 
-    private processorBootstrapCommandName = Config.processorBootstrapCommandName;
+    private readonly processorBootstrapCommandName: string;
     private queueNames = new Array<string>();
     private logger: ILogger;
     private messageBrokerFactory: IMessageBrokerFactory;
     private isPubCons = false;
 
-    constructor(workingDir: string) {
+    constructor(commandSetNum: number = 0) {
         this.id = `processor-${uuidv4()}`;
-        this.workingDir = workingDir;
-        this.commandsDir = `${this.workingDir}/${Config.commandsDir}/`;
+        this.workingDir = path.join(__dirname, '..');
+        this. processorBootstrapCommandName = Config.commandSets[commandSetNum].bootstrapCommandName;
+        //this.commandsDir = `${this.workingDir}/${Config.commandSets[commandSetNum].dir}/`;
+        this.commandsDir = path.join(this.workingDir, Config.commandSets[commandSetNum].dir);
         this.createCommandFileLookup();
-        this.isPubCons = Config.messageBrokerFactoryFilePath && Config.queueNames && Config.queueNames.length > 0;
+        this.isPubCons = Utils.isValid(Config.messageBroker) &&
+                         Utils.isNotEmptyString(Config.messageBroker.factoryFilePath) &&
+                         Utils.isValid(Config.messageBroker.queueNames) &&
+                         Config.messageBroker.queueNames.length > 0;
     }
 
     async init(): Promise<Processor> {
-        this.logger = (await import(`${this.workingDir}/${Config.loggerFilePath}`)).create();
+        this.logger = (await import(path.join(this.workingDir, Config.logger.filePath))).create();
         this.logger.log(`Processor ${this.id} started`);
         if (this.isPubCons) {
             try {
-                this.messageBrokerFactory = (await import(`${this.workingDir}/${Config.messageBrokerFactoryFilePath}`)).create();
-                this.queueNames = Config.queueNames;
+                this.messageBrokerFactory = (await import(path.join(this.workingDir, Config.messageBroker.factoryFilePath))).create();
+                this.queueNames = Config.messageBroker.queueNames;
                 await Promise.all([this.startConsumers(), this.createPublishers()]);
                 this.isPubCons = true;
             } catch (err) {
@@ -48,7 +55,6 @@ export class Processor implements IProcessor {
         }
 
         this.logger.log(`Message broker is ${this.isPubCons ? '' : 'NOT '}supported`);
-
         this.logger.log(`Processor \"${this.id}\" initialized and runs its bootstrap command \"${this.processorBootstrapCommandName}\"`);
 
         let msgPrefix = `Bootstrap command ${this.processorBootstrapCommandName}`;
@@ -198,7 +204,7 @@ export class Processor implements IProcessor {
         fs.readdirSync(this.commandsDir).forEach((fileName: string) => {
             let _ = Processor.parseFileName(fileName);
             if (Processor.checkOnVersion(_))
-                this.commandNames.set(_.name, `${this.commandsDir}${fileName}`);
+                this.commandNames.set(_.name, path.join(this.commandsDir, fileName));
         });
 
     private static parseFileName(fileName: string): any {
@@ -212,7 +218,7 @@ export class Processor implements IProcessor {
     }
 
     private static checkOnVersion = (_: any): boolean =>
-        Config.versionMin <= _.version && _.version <= Config.versionMax
+        Config.versions.min <= _.version && _.version <= Config.versions.max
         && _.ext.toLowerCase() === 'js' && _.extMap === '';
 }
 

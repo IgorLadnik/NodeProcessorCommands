@@ -3,20 +3,20 @@ import { IProcessor } from "../interfaces/iprocessor";
 import { HttpServerProvider } from '../infrastructure/httpServerProvider';
 import { Config } from '../config';
 
-export async function command(args: any, processor: IProcessor): Promise<boolean> {
+export async function command(args: any, p: IProcessor): Promise<boolean> {
     const thisCommandName = 'cmdHttpServer';
-    let logger = processor.getLogger();
+    let logger = p.getLogger();
 
-    const port = Config.port;
+    const port = Config.httpServer.ports[0];
     const httpServer = new HttpServerProvider(port, logger).server;
     logger.log(`${thisCommandName}: port = ${port}`);
 
     httpServer.get('/', async (req: any, res: any) => {
-        await processor.execute(new Command('cmdGetSample', {select: '*', from: 'Pets'}));
+        await p.execute(new Command('cmdGetSample', {select: '*', from: 'Pets'}));
 
-        let recordset = processor.getResource('recordset');
+        let recordset = p.getResource('recordset');
         if (recordset) {
-            processor.deleteResource('recordset');
+            p.deleteResource('recordset');
             try {
                 res.send(`Hello World! ${JSON.stringify(recordset)}`);
             } catch (err) {
@@ -26,16 +26,16 @@ export async function command(args: any, processor: IProcessor): Promise<boolean
     });
 
     httpServer.get('/a', async (req: any, res: any) => {
-        processor.setResource('res', res);
+        p.setResource('res', res);
         setTimeout(async ()=> {
-            await processor.execute(new Command('cmdGetSample', {select: '*', from: 'Pets'}));
+            await p.execute(new Command('cmdGetSample', {select: '*', from: 'Pets'}));
 
-            let recordset = processor.getResource('recordset');
+            let recordset = p.getResource('recordset');
             if (recordset) {
-                processor.deleteResource('recordset');
+                p.deleteResource('recordset');
                 try {
-                    processor.getResource('res').send(`Hello World! ${JSON.stringify(recordset)}`);
-                    processor.deleteResource('res');
+                    p.getResource('res').send(`Hello World! ${JSON.stringify(recordset)}`);
+                    p.deleteResource('res');
                 } catch (err) {
                     logger.log(err);
                 }

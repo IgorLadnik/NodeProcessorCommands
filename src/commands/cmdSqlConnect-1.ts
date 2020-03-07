@@ -6,8 +6,8 @@ export async function command(args: any, p: IProcessor): Promise<boolean> {
     let logger = p.getLogger();
     logger.log(`cmdSqlConnect: args: ${JSON.stringify(args)}`);
 
-    let server = Config.sqlServer;
-    let database = Config.sqlDatabase;
+    let server = Config.sqlServer.host;
+    let database = Config.sqlServer.databases[0];
     let sql = new SqlServerProvider({server, database}, logger);
     try {
         await sql.connect();
