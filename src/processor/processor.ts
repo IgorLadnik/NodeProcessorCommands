@@ -42,9 +42,9 @@ export class Processor implements IProcessor {
                 this.queueNames = Config.queueNames;
                 await Promise.all([this.startConsumers(), this.createPublishers()]);
                 this.isPubCons = true;
-                this.logger.log('Publish / Consume is supported');
+                this.logger.log('Message broker is supported');
             } catch (err) {
-                this.logger.log('Publish / Consume is NOT supported');
+                this.logger.log('Message broker is NOT supported');
             }
         }
         else
@@ -100,15 +100,7 @@ export class Processor implements IProcessor {
     }
 
     async executeParallel(...commands: Array<Command>): Promise<boolean> {
-        let br = true;
-        let promises = new Array<Promise<boolean>>();
-        for (let i = 0; i < commands.length; i++)
-            promises.push(this.executeOne(commands[i]));
-
-        for (let i = 0; i < promises.length; i++)
-            br = br && await promises[i];
-
-        return br;
+        return await this.executeManyInParallel(commands);
     }
 
     // Publish methods
@@ -153,6 +145,19 @@ export class Processor implements IProcessor {
         return br;
     }
 
+    private async executeManyInParallel(commands: Array<Command>, message: Message = Processor.defaultMessage)
+            : Promise<boolean> {
+        let br = true;
+        let promises = new Array<Promise<boolean>>();
+        for (let i = 0; i < commands.length; i++)
+            promises.push(this.executeOne(commands[i], message));
+
+        for (let i = 0; i < promises.length; i++)
+            br = br && await promises[i];
+
+        return br;
+    }
+
     private async createPublishers(): Promise<void> {
         if (!this.messageBrokerFactory)
             return;
@@ -179,9 +184,9 @@ export class Processor implements IProcessor {
         let _ = item.fields;
         try {
             let message = new Message(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
-            let command: Command = JSON.parse(item.content.toString());
+            let command: Command = JSON.parse(`${item.content}`);
             if (command.name === this.parallelCmdName)
-                await this.executeParallel(...command.args);
+                await this.executeManyInParallel(command.args, message);
             else
                 await this.executeOne(command, message);
         }

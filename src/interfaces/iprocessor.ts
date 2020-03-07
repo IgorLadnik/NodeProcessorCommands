@@ -16,7 +16,7 @@ export interface IProcessor {
     execute(...commands: Array<Command>): Promise<boolean>;
     executeParallel(...commands: Array<Command>): Promise<boolean>;
 
-    // Queueing commands
+    // Message broker commands
     isMessageBrokerSupported(): boolean;
     publish(queueName: string, ...commands: Array<Command>): Promise<void>;
     publishParallel(queueName: string, ...commands: Array<Command>): Promise<void>;

@@ -5,8 +5,8 @@ export class Message {
     deliveryTag: number;
     redelivered: boolean;
 
-    constructor(exchange:    string = '', 
-                queueName:   string = 'executed directly',
+    constructor(exchange:    string = '',
+                queueName:   string = '',
                 consumerTag: string = '',
                 deliveryTag: number = -1,
                 redelivered: boolean = false) {
@@ -16,4 +16,8 @@ export class Message {
         this.deliveryTag = deliveryTag;
         this.redelivered = redelivered;  
     }
+
+    get isEmpty():boolean { return this.queueName === '' && this.deliveryTag === -1; }
+
+    toString() { return !this.isEmpty ? `${JSON.stringify(this)}` : ''; }
 }

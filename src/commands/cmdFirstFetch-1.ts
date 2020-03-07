@@ -7,7 +7,7 @@ export async function command(args: any, p: IProcessor, message: Message): Promi
     let logger = p.getLogger();
 
     let sql = p.getResource('sql');
-    if (!Utils.isDefined(sql))
+    if (!Utils.isValid(sql))
         return false;
 
     const dbTable = 'Pets';
@@ -21,7 +21,8 @@ export async function command(args: any, p: IProcessor, message: Message): Promi
     }
 
     p.setResource('recordset', recordset);
-    logger.log(`${thisCommandName}: args: ${JSON.stringify(recordset)} | message: ${JSON.stringify(message)}`);
+    let str = !message.isEmpty ? `| message: ${message}` : '';
+    logger.log(`${thisCommandName}: args: ${JSON.stringify(args)} ${str}`);
 
     return true;
 }
