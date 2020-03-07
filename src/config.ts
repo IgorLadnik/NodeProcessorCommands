@@ -11,7 +11,7 @@ export class Config {
     static readonly versionMin = 1;
     static readonly versionMax = 1;
 
-    // Publish / Consume support
+    // Message broker support
     static readonly messageBrokerFactoryFilePath = 'infrastructure/rabbitmqProvider';  // *.ts file
     static readonly queueNames = ['il-01', 'il-02'];
 

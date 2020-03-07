@@ -24,31 +24,30 @@ export class Processor implements IProcessor {
     private queueNames = new Array<string>();
     private logger: ILogger;
     private messageBrokerFactory: IMessageBrokerFactory;
-    private isPubCons: boolean = false;
+    private isPubCons = false;
 
     constructor(workingDir: string) {
         this.id = `processor-${uuidv4()}`;
         this.workingDir = workingDir;
         this.commandsDir = `${this.workingDir}/${Config.commandsDir}/`;
         this.createCommandFileLookup();
+        this.isPubCons = Config.messageBrokerFactoryFilePath && Config.queueNames && Config.queueNames.length > 0;
     }
 
     async init(): Promise<Processor> {
         this.logger = (await import(`${this.workingDir}/${Config.loggerFilePath}`)).create();
         this.logger.log(`Processor ${this.id} started`);
-        if (Config.messageBrokerFactoryFilePath && Config.queueNames && Config.queueNames.length > 0) {
+        if (this.isPubCons) {
             try {
                 this.messageBrokerFactory = (await import(`${this.workingDir}/${Config.messageBrokerFactoryFilePath}`)).create();
                 this.queueNames = Config.queueNames;
                 await Promise.all([this.startConsumers(), this.createPublishers()]);
                 this.isPubCons = true;
-                this.logger.log('Message broker is supported');
             } catch (err) {
-                this.logger.log('Message broker is NOT supported');
             }
         }
-        else
-            this.logger.log('Publish / Consume is NOT supported');
+
+        this.logger.log(`Message broker is ${this.isPubCons ? '' : 'NOT '}supported`);
 
         this.logger.log(`Processor \"${this.id}\" initialized and runs its bootstrap command \"${this.processorBootstrapCommandName}\"`);
 
