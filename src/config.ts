@@ -15,6 +15,8 @@ export class Config {
         max: 1
     };
 
+    // Message broker (queueing) support is an optional. RabbitMQ is used as message broker in this project,
+    // but other MQs may be used in stead since Publisher and Consumer are used through their interfaces.
     static readonly messageBroker = {
         factoryFilePath: 'infrastructure/rabbitmqProvider',  // *.ts file
         queueNames: ['il-01', 'il-02']

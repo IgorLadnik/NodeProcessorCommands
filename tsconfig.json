@@ -10,5 +10,7 @@
         "sourceMap": true,
         "watch": true,
         "strictPropertyInitialization": false //!
-    }
+    },
+
+   "compileOnSave": true
 }

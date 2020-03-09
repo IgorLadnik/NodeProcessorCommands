@@ -32,7 +32,6 @@ export class Processor implements IProcessor {
         this.id = `processor-${uuidv4()}`;
         this.workingDir = path.join(__dirname, '..');
         this. processorBootstrapCommandName = Config.commandSets[commandSetNum].bootstrapCommandName;
-        //this.commandsDir = `${this.workingDir}/${Config.commandSets[commandSetNum].dir}/`;
         this.commandsDir = path.join(this.workingDir, Config.commandSets[commandSetNum].dir);
         this.createCommandFileLookup();
         this.isPubCons = Utils.isValid(Config.messageBroker) &&

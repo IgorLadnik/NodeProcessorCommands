@@ -16,7 +16,10 @@ export interface IProcessor {
     execute(...commands: Array<Command>): Promise<boolean>;
     executeParallel(...commands: Array<Command>): Promise<boolean>;
 
-    // Message broker commands
+    // Message broker (queueing) support is an optional. RabbitMQ is used as message broker in this project,
+    // but other MQs may be used in stead since Publisher and Consumer are used through their interfaces.
+
+    // Message broker related methods
     isMessageBrokerSupported(): boolean;
     publish(queueName: string, ...commands: Array<Command>): Promise<void>;
     publishParallel(queueName: string, ...commands: Array<Command>): Promise<void>;
