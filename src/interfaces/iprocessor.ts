@@ -5,7 +5,6 @@ export interface IProcessor {
     // Get general info / resources from processor
     getId(): string;
     getLogger(): ILogger;
-    getQueueNames(): Array<string>;
 
     // get / set custom resources from / to processor
     getResource(resourceName: string): any
@@ -21,6 +20,7 @@ export interface IProcessor {
 
     // Message broker related methods
     isMessageBrokerSupported(): boolean;
+    getQueueNames(): Array<string>;
     publish(queueName: string, ...commands: Array<Command>): Promise<void>;
     publishParallel(queueName: string, ...commands: Array<Command>): Promise<void>;
 }

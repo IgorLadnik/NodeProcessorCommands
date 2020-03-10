@@ -68,11 +68,11 @@ export class Processor implements IProcessor {
 
     // Implementation of IProcessor
 
+    // Get general info / resources from processor
+
     getId = (): string => this.id;
 
     getLogger = (): ILogger => this.logger;
-
-    getQueueNames = (): Array<string> => this.queueNames;
 
     // Resources
 
@@ -110,6 +110,8 @@ export class Processor implements IProcessor {
     // Publish methods
 
     isMessageBrokerSupported = (): boolean => this.isPubCons;
+
+    getQueueNames = (): Array<string> => this.queueNames;
 
     async publish(queueName: string, ...commands: Array<Command>): Promise<void> {
         if (!this.messageBrokerFactory)
