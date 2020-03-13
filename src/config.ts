@@ -31,7 +31,7 @@ export class Config {
     };
 
     static readonly httpServer = {
-        ports: [19019]
+        ports: [19019, 19020]
     };
 }
 

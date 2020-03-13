@@ -8,7 +8,7 @@ export async function command(args: any, p: IProcessor): Promise<boolean> {
     const thisCommandName = 'cmdRestA';
     let logger = p.getLogger();
 
-    let httpServer = p.getResource('httpServer');
+    let httpServer = args;
     if (!Utils.isValid(httpServer)) {
         logger.log(`Error in command \"${thisCommandName}\" http server is not available`);
         return false;
@@ -17,7 +17,7 @@ export async function command(args: any, p: IProcessor): Promise<boolean> {
     logger.log(`Command \"${thisCommandName}\" http GET on root/a created`);
     httpServer.get('/a', async (req: any, res: any) => {
         p.setResource('res', res);
-        setTimeout(async ()=> {
+        setTimeout(async () => {
             await p.execute(new Command('cmdGetSample', {select: '*', from: 'Pets'}));
 
             let recordset = p.getResource('recordset');

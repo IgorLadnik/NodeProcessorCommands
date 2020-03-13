@@ -6,7 +6,7 @@ export async function command(args: any, p: IProcessor): Promise<boolean> {
     const thisCommandName = 'cmdRest';
     let logger = p.getLogger();
 
-    let httpServer = p.getResource('httpServer');
+    let httpServer = args;
     if (!Utils.isValid(httpServer)) {
         logger.log(`Error in command \"${thisCommandName}\" http server is not available`);
         return false;

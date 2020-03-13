@@ -11,7 +11,8 @@ const path = require('path');
 const fs = require('fs');
 
 export class Processor implements IProcessor {
-    private static defaultMessage = new Message();
+    private static readonly commandTemplateChar = '*';
+    private static readonly defaultMessage = new Message();
 
     private readonly id: string;
     private readonly parallelCmdName = '';
@@ -95,8 +96,9 @@ export class Processor implements IProcessor {
 
     // Public execute commands methods
 
-    async execute(...commands: Array<Command>): Promise<boolean> {
+    async execute(...orgCommands: Array<Command>): Promise<boolean> {
         let br = true;
+        let commands = this.processPossibleCommandTemplate(orgCommands);
         for (let i = 0; i < commands.length; i++)
             br = br && await (this.executeOne(commands[i]));
 
@@ -104,7 +106,7 @@ export class Processor implements IProcessor {
     }
 
     async executeParallel(...commands: Array<Command>): Promise<boolean> {
-        return await this.executeManyInParallel(commands);
+        return await this.executeManyInParallel(this.processPossibleCommandTemplate(commands));
     }
 
     // Publish methods
@@ -116,13 +118,15 @@ export class Processor implements IProcessor {
     async publish(queueName: string, ...commands: Array<Command>): Promise<void> {
         if (!this.messageBrokerFactory)
             return;
-        await this.publishers.get(queueName).publish<Command>(queueName, commands, true);
+        await this.publishers.get(queueName).publish<Command>(queueName,
+                        this.processPossibleCommandTemplate(commands), true);
     }
 
     async publishParallel(queueName: string, ...commands: Array<Command>): Promise<void> {
         if (!this.messageBrokerFactory)
             return;
-        await this.publishOne(queueName, new Command(this.parallelCmdName, commands), true);
+        await this.publishOne(queueName, new Command(this.parallelCmdName,
+                        this.processPossibleCommandTemplate(commands)), true);
     }
 
     // Private methods
@@ -207,6 +211,27 @@ export class Processor implements IProcessor {
             if (Processor.checkOnVersion(_))
                 this.commandNames.set(_.name, path.join(this.commandsDir, fileName));
         });
+
+    private processPossibleCommandTemplate(orgCommands: Array<Command>): Array<Command> {
+        let ret = orgCommands;
+        let commands = new Array<Command>();
+        for (let  i = 0; i < orgCommands.length; i++) {
+            let command = orgCommands[i];
+            let asteriskIndex = command.name.indexOf(Processor.commandTemplateChar);
+            if (asteriskIndex > -1) {
+                let prefix = command.name.substr(0, asteriskIndex);
+                let commandNames = this.commandNames.getKeys();
+                for (let  j = 0; j < commandNames.length; j++) {
+                    let commandName = commandNames[j] as string;
+                    if (commandName.includes(prefix, 0))
+                        commands.push(new Command(commandName, command.args));
+                }
+            }
+            else
+                commands.push(command);
+        }
+        return commands;
+    }
 
     private static parseFileName(fileName: string): any {
         let ss0 = fileName.split('-');

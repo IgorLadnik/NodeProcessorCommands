@@ -1,18 +1,16 @@
 import { Command } from '../models/command';
 import { IProcessor } from "../interfaces/iprocessor";
+import { Config } from "../config";
 
 export async function command(args: any, p: IProcessor): Promise<boolean> {
     const thisCommandName = 'cmdBootstrap';
     let logger = p.getLogger();
     logger.log(thisCommandName);
 
-    let br = false;
+    let br = await p.execute(new Command('cmdCreateHttpServer', Config.httpServer.ports[0]));
 
-    br = await p.execute(new Command('cmdCreateHttpServer', 0));
     if (br)
-        br = await p.execute(new Command('cmdRest'));
-    if (br)
-        br = await p.execute(new Command('cmdRestA'));
+        br = await p.execute(new Command('cmdCreateHttpOpenApiServer', Config.httpServer.ports[1]));
 
     if (br) {
         br = false;
