@@ -20,28 +20,31 @@ export async function command(args: any, p: IProcessor): Promise<boolean> {
                 br = await p.execute(commandFirstFetch);
     }
 
-    if (br) {
-        // TEST stuff
-        if (!await p.executeParallel(
+    if (br)
+        br = await p.executeParallel(
             new Command('cmdTestP', {order: 1}),
             new Command('cmdTestP', {order: 2}),
-            new Command('cmdTestP', {order: 3})))
-            return false;
+            new Command('cmdTestP', {order: 3}));
 
-        if (p.isMessageBrokerSupported()) {
-            setInterval(async () =>
-                    await p.publish(p.getQueueNames()[0],
-                        new Command('cmdFirstFetch', {a: 'aaa', n: 1}),
-                        new Command('cmdFirstFetch', {a: 'qqq', n: 1})),
-                3000);
+    if (br)
+        br = await p.execute(
+            new Command('cmdTestP', {order: 1}),
+            new Command('cmdTestP', {order: 2}),
+            new Command('cmdTestP', {order: 3}));
 
-            setInterval(async () =>
-                    await p.publishParallel(p.getQueueNames()[0],
-                        new Command('cmdTestP', {order: 1}),
-                        new Command('cmdTestP', {order: 2}),
-                        new Command('cmdTestP', {order: 3})),
-                1370);
-        }
+    if (br && p.isMessageBrokerSupported()) {
+        setInterval(async () =>
+                await p.publish(p.getQueueNames()[0],
+                    new Command('cmdFirstFetch', {a: 'aaa', n: 1}),
+                    new Command('cmdFirstFetch', {a: 'qqq', n: 1})),
+            3000);
+
+        setInterval(async () =>
+                await p.publishParallel(p.getQueueNames()[0],
+                    new Command('cmdTestP', {order: 1}),
+                    new Command('cmdTestP', {order: 2}),
+                    new Command('cmdTestP', {order: 3})),
+            1370);
     }
 
     return br;

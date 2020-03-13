@@ -105,9 +105,9 @@ export class Processor implements IProcessor {
         return br;
     }
 
-    async executeParallel(...commands: Array<Command>): Promise<boolean> {
-        return await this.executeManyInParallel(this.processPossibleCommandTemplate(commands));
-    }
+    executeParallel = async (...commands: Array<Command>): Promise<boolean> =>
+        await this.executeManyInParallel(this.processPossibleCommandTemplate(commands));
+
 
     // Publish methods
 
