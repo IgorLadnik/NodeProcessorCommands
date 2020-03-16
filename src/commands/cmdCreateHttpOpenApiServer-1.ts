@@ -1,6 +1,6 @@
 import { IProcessor } from "../interfaces/iprocessor";
 import { HttpOpenApiServerProvider } from '../infrastructure/httpOpenApiServerProvider';
-import {Command} from "../models/command";
+import { Command } from "../models/command";
 
 export async function command(args: any, p: IProcessor): Promise<boolean> {
     const thisCommandName = 'cmdCreateHttpOpenApiServer';

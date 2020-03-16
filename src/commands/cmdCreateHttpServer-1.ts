@@ -1,7 +1,7 @@
 import { IProcessor } from "../interfaces/iprocessor";
 import { HttpServerProvider } from '../infrastructure/httpServerProvider';
 import { Utils } from "../infrastructure/utils";
-import {Command} from "../models/command";
+import { Command } from "../models/command";
 
 export async function command(args: any, p: IProcessor): Promise<boolean> {
     const thisCommandName = 'cmdCreateHttpServer';
