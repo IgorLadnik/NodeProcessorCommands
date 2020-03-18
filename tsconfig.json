@@ -6,6 +6,7 @@
         "module": "commonjs",
         "rootDir": "src",
         "outDir": "dist",
+        "removeComments": true,
         "strict": true,
         "sourceMap": true,
         "watch": true,
