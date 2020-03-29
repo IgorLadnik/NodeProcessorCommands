@@ -1,15 +1,16 @@
-import { IProcessor } from '../interfaces/iprocessor';
-import { ILogger } from '../interfaces/ilogger';
 import { Dictionary } from 'dictionaryjs';
+import { v4 as uuidv4 } from 'uuid';
+import { Config } from '../config';
 import { Command } from '../models/command';
 import { Message } from '../models/message';
-import { Config } from '../config';
+import { IProcessor } from '../interfaces/iprocessor';
+import { ILogger } from '../interfaces/ilogger';
 import { IMessageBrokerFactory, IPublisher, IConsumer } from '../interfaces/messageInterfaces';
-import { v4 as uuidv4 } from 'uuid';
 import { Utils } from '../infrastructure/utils';
+import { CmdFunc, RemoteCodeLoader } from '../infrastructure/remoteCodeLoader';
 const path = require('path');
 const fs = require('fs');
-const  urljoin = require('url-join');
+const  urlJoin = require('url-join');
 
 export class Processor implements IProcessor {
     private static readonly commandTemplateChar = '*';
@@ -38,7 +39,7 @@ export class Processor implements IProcessor {
         this. processorBootstrapCommandName = commandSet.bootstrapCommandName;
         this.isWebCommandsSource = Utils.isWeb(commandSet.webRepo);
         this.commandsSource = this.isWebCommandsSource
-                ? urljoin(commandSet.webRepo, commandSet.dir)
+                ? urlJoin(commandSet.webRepo, commandSet.dir)
                 : path.join(this.workingDir, commandSet.dir);
         this.createCommandFileLookup();
         this.isPubCons = Utils.isValid(Config.messageBroker) &&
@@ -211,31 +212,34 @@ export class Processor implements IProcessor {
         }
     }
 
-    private createCommandFileLookup = () =>
-        fs.readdirSync(this.commandsSource).forEach((fileName: string) => {
-            let _ = Processor.parseFileName(fileName);
-            if (Processor.checkOnVersion(_))
-                this.commandNames.set(_.name, path.join(this.commandsSource, fileName));
-        });
+    private createCommandFileLookup = () => {
+        if (!this.isWebCommandsSource)
+            fs.readdirSync(this.commandsSource).forEach((fileName: string) => {
+                let _ = Processor.parseFileName(fileName);
+                if (Processor.checkOnVersion(_))
+                    this.commandNames.set(_.name, path.join(this.commandsSource, fileName));
+            });
+    }
 
     private processPossibleCommandTemplate(orgCommands: Array<Command>): Array<Command> {
-        let ret = orgCommands;
         let commands = new Array<Command>();
-        for (let  i = 0; i < orgCommands.length; i++) {
-            let command = orgCommands[i];
-            let asteriskIndex = command.name.indexOf(Processor.commandTemplateChar);
-            if (asteriskIndex > -1) {
-                let prefix = command.name.substr(0, asteriskIndex);
-                let commandNames = this.commandNames.getKeys();
-                for (let  j = 0; j < commandNames.length; j++) {
-                    let commandName = commandNames[j] as string;
-                    if (commandName.includes(prefix, 0))
-                        commands.push(new Command(commandName, command.args));
+        if (!this.isWebCommandsSource)
+            for (let  i = 0; i < orgCommands.length; i++) {
+                let command = orgCommands[i];
+                let asteriskIndex = command.name.indexOf(Processor.commandTemplateChar);
+                if (asteriskIndex > -1) {
+                    let prefix = command.name.substr(0, asteriskIndex);
+                    let commandNames = this.commandNames.getKeys();
+                    for (let  j = 0; j < commandNames.length; j++) {
+                        let commandName = commandNames[j] as string;
+                        if (commandName.includes(prefix, 0))
+                            commands.push(new Command(commandName, command.args));
+                    }
                 }
+                else
+                    commands.push(command);
             }
-            else
-                commands.push(command);
-        }
+
         return commands;
     }
 
