@@ -1,9 +1,3 @@
 export class Command {
-    name: string;
-    args: any;
-    
-    constructor(name: string, args: any = undefined) {
-        this.name = name;
-        this.args = args;
-    }
+    constructor(public name: string, public args: any = undefined) { }
 }

@@ -1,23 +1,11 @@
 export class Message {
-    exchange:    string;
-    queueName:   string;
-    consumerTag: string;
-    deliveryTag: number;
-    redelivered: boolean;
+    constructor(public exchange:    string = '',
+                public queueName:   string = '',
+                public consumerTag: string = '',
+                public deliveryTag: number = -1,
+                public redelivered: boolean = false) { }
 
-    constructor(exchange:    string = '',
-                queueName:   string = '',
-                consumerTag: string = '',
-                deliveryTag: number = -1,
-                redelivered: boolean = false) {
-        this.exchange = exchange;
-        this.queueName = queueName;
-        this.consumerTag = consumerTag;
-        this.deliveryTag = deliveryTag;
-        this.redelivered = redelivered;  
-    }
+    public get isEmpty():boolean { return this.queueName === '' && this.deliveryTag === -1; }
 
-    get isEmpty():boolean { return this.queueName === '' && this.deliveryTag === -1; }
-
-    toString() { return !this.isEmpty ? `${JSON.stringify(this)}` : ''; }
+    public toString() { return !this.isEmpty ? `${JSON.stringify(this)}` : ''; }
 }

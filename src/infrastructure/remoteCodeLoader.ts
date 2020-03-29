@@ -1,5 +1,6 @@
-const fetch = require('node-fetch');
 import { Dictionary } from 'dictionaryjs';
+const fetch = require('node-fetch');
+const  urlJoin = require('url-join');
 
 export class CmdFunc {
     constructor(private readonly injections: Array<any>,
@@ -27,7 +28,7 @@ export class RemoteCodeLoader {
 
     async importRemoteCode(remoteCodeName: string, ...args: Array<string>): Promise<CmdFunc> {
         let fn: Function;
-        let url = `${this.baseUrl}${remoteCodeName}`;
+        let url = urlJoin(this.baseUrl, remoteCodeName);
         let script = await fetch(url);
         if (!script.ok)
             return new CmdFunc([], new Function(), false);

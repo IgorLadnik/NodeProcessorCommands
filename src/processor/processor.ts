@@ -18,13 +18,14 @@ export class Processor implements IProcessor {
 
     private readonly id: string;
     private readonly parallelCmdName = '';
-    private readonly commands = new Dictionary<string, any>();
+    private readonly commands = new Dictionary<string, CmdFunc>();
     private readonly publishers = new Dictionary<string, IPublisher>();
     private readonly resources = new Dictionary<string, any>();
     private readonly commandNames = new Dictionary<string, string>();
     private readonly workingDir: string;
     private readonly commandsSource: string;
     private readonly isWebCommandsSource: boolean;
+    private readonly remoteCodeLoader: RemoteCodeLoader;
 
     private readonly processorBootstrapCommandName: string;
     private queueNames = new Array<string>();
@@ -46,6 +47,14 @@ export class Processor implements IProcessor {
                          Utils.isNotEmptyString(Config.messageBroker.factoryFilePath) &&
                          Utils.isValid(Config.messageBroker.queueNames) &&
                          Config.messageBroker.queueNames.length > 0;
+
+        // TEMP
+        if (this.isWebCommandsSource) {
+            let dctDependInj = new Dictionary<string, any>();
+            dctDependInj.set('require', require);
+            dctDependInj.set('remoteCodeLoader', new RemoteCodeLoader(this.commandsSource, dctDependInj));
+            this.remoteCodeLoader = new RemoteCodeLoader(this.commandsSource, dctDependInj);
+        }
     }
 
     async init(): Promise<Processor> {
@@ -141,19 +150,29 @@ export class Processor implements IProcessor {
     private async executeOne(command: Command, message: Message = Processor.defaultMessage): Promise<boolean> {
         let br = false;
         try {
-            let cmd: any = this.commands.get(command.name);
+            let cmd: CmdFunc = this.commands.get(command.name);
             if (!cmd) {
-                let actualCommandFileName = this.commandNames.get(command.name);
-                if (actualCommandFileName) {
-                    cmd = await import(actualCommandFileName);
-                    this.commands.set(command.name, cmd);
+                if (this.isWebCommandsSource) {
+                    // Remote commands
+                    // TEMP
+                    cmd = await this.remoteCodeLoader.importRemoteCode(`${command.name}.js`, ...[]);
                 }
-                else
-                    this.logger.log(`Error: file for command \"${command.name}\" does not exists`);
+                else {
+                    // Local commands
+                    let actualCommandFileName = this.commandNames.get(command.name);
+                    if (actualCommandFileName) {
+                        let fnCommand: Function = (await import(actualCommandFileName)).command;
+                        cmd = new CmdFunc([], fnCommand, true);
+                    }
+                }
             }
 
-            if (cmd)
-                br = await cmd.command(command.args, this as IProcessor, message);
+            if (cmd) {
+                this.commands.set(command.name, cmd);
+                br = await cmd.call(command.args, this as IProcessor, message);
+            }
+             else
+                this.logger.log(`Error: file for command \"${command.name}\" does not exists`);
         }
         catch (err) {
             this.logger.log(err);
