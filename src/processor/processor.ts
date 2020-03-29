@@ -36,9 +36,9 @@ export class Processor implements IProcessor {
         this.workingDir = path.join(__dirname, '..');
         let commandSet = Config.commandSets[commandSetNum];
         this. processorBootstrapCommandName = commandSet.bootstrapCommandName;
-        this.isWebCommandsSource = Utils.isWeb(commandSet.repo);
+        this.isWebCommandsSource = Utils.isWeb(commandSet.webRepo);
         this.commandsSource = this.isWebCommandsSource
-                ? urljoin(commandSet.repo, commandSet.dir)
+                ? urljoin(commandSet.webRepo, commandSet.dir)
                 : path.join(this.workingDir, commandSet.dir);
         this.createCommandFileLookup();
         this.isPubCons = Utils.isValid(Config.messageBroker) &&
