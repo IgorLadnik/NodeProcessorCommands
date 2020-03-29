@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Utils } from '../infrastructure/utils';
 const path = require('path');
 const fs = require('fs');
+const  urljoin = require('url-join');
 
 export class Processor implements IProcessor {
     private static readonly commandTemplateChar = '*';
@@ -16,12 +17,13 @@ export class Processor implements IProcessor {
 
     private readonly id: string;
     private readonly parallelCmdName = '';
-    private readonly commandsDir: string;
     private readonly commands = new Dictionary<string, any>();
     private readonly publishers = new Dictionary<string, IPublisher>();
     private readonly resources = new Dictionary<string, any>();
     private readonly commandNames = new Dictionary<string, string>();
     private readonly workingDir: string;
+    private readonly commandsSource: string;
+    private readonly isWebCommandsSource: boolean;
 
     private readonly processorBootstrapCommandName: string;
     private queueNames = new Array<string>();
@@ -32,8 +34,12 @@ export class Processor implements IProcessor {
     constructor(commandSetNum: number = 0) {
         this.id = `processor-${uuidv4()}`;
         this.workingDir = path.join(__dirname, '..');
-        this. processorBootstrapCommandName = Config.commandSets[commandSetNum].bootstrapCommandName;
-        this.commandsDir = path.join(this.workingDir, Config.commandSets[commandSetNum].dir);
+        let commandSet = Config.commandSets[commandSetNum];
+        this. processorBootstrapCommandName = commandSet.bootstrapCommandName;
+        this.isWebCommandsSource = Utils.isWeb(commandSet.repo);
+        this.commandsSource = this.isWebCommandsSource
+                ? urljoin(commandSet.repo, commandSet.dir)
+                : path.join(this.workingDir, commandSet.dir);
         this.createCommandFileLookup();
         this.isPubCons = Utils.isValid(Config.messageBroker) &&
                          Utils.isNotEmptyString(Config.messageBroker.factoryFilePath) &&
@@ -206,10 +212,10 @@ export class Processor implements IProcessor {
     }
 
     private createCommandFileLookup = () =>
-        fs.readdirSync(this.commandsDir).forEach((fileName: string) => {
+        fs.readdirSync(this.commandsSource).forEach((fileName: string) => {
             let _ = Processor.parseFileName(fileName);
             if (Processor.checkOnVersion(_))
-                this.commandNames.set(_.name, path.join(this.commandsDir, fileName));
+                this.commandNames.set(_.name, path.join(this.commandsSource, fileName));
         });
 
     private processPossibleCommandTemplate(orgCommands: Array<Command>): Array<Command> {

@@ -8,5 +8,8 @@ export class Utils {
         new Promise(resolve => setTimeout(() => {
             resolve();
             logger?.log(`delay for ${duration} ms`);
-        }, duration));
+        }, duration)
+    );
+
+    static isWeb = (str: string): boolean => Utils.isNotEmptyString(str) && str.toLowerCase().indexOf('http') === 0;
 }

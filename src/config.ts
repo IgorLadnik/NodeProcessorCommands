@@ -6,7 +6,8 @@ export class Config {
     };
 
     static readonly commandSets = [{
-        dir: 'commands',
+        //repo: 'http://localhost:9000',
+        dir: '/commands/',
         bootstrapCommandName: 'cmdBootstrap'
     }];
 
