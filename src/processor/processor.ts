@@ -7,7 +7,8 @@ import { IProcessor } from '../interfaces/iprocessor';
 import { ILogger } from '../interfaces/ilogger';
 import { IMessageBrokerFactory, IPublisher, IConsumer } from '../interfaces/messageInterfaces';
 import { Utils } from '../infrastructure/utils';
-import { CmdFunc, RemoteCodeLoader } from '../infrastructure/remoteCodeLoader';
+import { RemoteCommandLoader } from '../infrastructure/remoteCommandLoader';
+import { CommandFunctionWrapper } from '../infrastructure/commandFunctionWrapper';
 const path = require('path');
 const fs = require('fs');
 const  urlJoin = require('url-join');
@@ -18,20 +19,21 @@ export class Processor implements IProcessor {
 
     private readonly id: string;
     private readonly parallelCmdName = '';
-    private readonly commands = new Dictionary<string, CmdFunc>();
+    private readonly commandFunctionWrappers = new Dictionary<string, CommandFunctionWrapper>();
     private readonly publishers = new Dictionary<string, IPublisher>();
     private readonly resources = new Dictionary<string, any>();
     private readonly commandNames = new Dictionary<string, string>();
     private readonly workingDir: string;
     private readonly commandsSource: string;
     private readonly isWebCommandsSource: boolean;
-    private readonly remoteCodeLoader: RemoteCodeLoader;
-
     private readonly processorBootstrapCommandName: string;
+
     private queueNames = new Array<string>();
     private logger: ILogger;
     private messageBrokerFactory: IMessageBrokerFactory;
     private isPubCons = false;
+    private remoteCodeLoader: RemoteCommandLoader;
+    private remoteCmdDependencies: Array<any>;
 
     constructor(commandSetNum: number = 0) {
         this.id = `processor-${uuidv4()}`;
@@ -47,19 +49,18 @@ export class Processor implements IProcessor {
                          Utils.isNotEmptyString(Config.messageBroker.factoryFilePath) &&
                          Utils.isValid(Config.messageBroker.queueNames) &&
                          Config.messageBroker.queueNames.length > 0;
-
-        // TEMP
-        if (this.isWebCommandsSource) {
-            let dctDependInj = new Dictionary<string, any>();
-            dctDependInj.set('require', require);
-            dctDependInj.set('remoteCodeLoader', new RemoteCodeLoader(this.commandsSource, dctDependInj));
-            this.remoteCodeLoader = new RemoteCodeLoader(this.commandsSource, dctDependInj);
-        }
     }
 
     async init(): Promise<Processor> {
         this.logger = (await import(path.join(this.workingDir, Config.logger.filePath))).create();
         this.logger.log(`Processor ${this.id} started`);
+
+        //TEMP
+        if (this.isWebCommandsSource) {
+            this.remoteCmdDependencies = [ require, new RemoteCommandLoader(this.commandsSource, this.logger) ];
+            this.remoteCodeLoader = new RemoteCommandLoader(this.commandsSource, this.logger);
+        }
+
         if (this.isPubCons) {
             try {
                 this.messageBrokerFactory = (await import(path.join(this.workingDir, Config.messageBroker.factoryFilePath))).create();
@@ -116,7 +117,9 @@ export class Processor implements IProcessor {
 
     async execute(...orgCommands: Array<Command>): Promise<boolean> {
         let br = true;
-        let commands = this.processPossibleCommandTemplate(orgCommands);
+        let commands = this.isWebCommandsSource
+                            ? orgCommands
+                            : this.processPossibleCommandTemplate(orgCommands);
         for (let i = 0; i < commands.length; i++)
             br = br && await (this.executeOne(commands[i]));
 
@@ -152,25 +155,29 @@ export class Processor implements IProcessor {
     private async executeOne(command: Command, message: Message = Processor.defaultMessage): Promise<boolean> {
         let br = false;
         try {
-            let cmdFunc: CmdFunc = this.commands.get(command.name);
+            let cmdFunc: CommandFunctionWrapper = this.commandFunctionWrappers.get(command.name);
             if (!cmdFunc) {
+                let fnCommand;
+                let remoteCmdDependencies = [];
+
                 if (this.isWebCommandsSource) {
                     // Remote commands
-                    // TEMP
-                    cmdFunc = await this.remoteCodeLoader.importRemoteCode(`${command.name}.js`, ...[]);
+                    fnCommand = await this.remoteCodeLoader.import(`${command.name}-1.js`); //TEMP
+                    remoteCmdDependencies = this.remoteCmdDependencies;
                 }
                 else {
                     // Local commands
                     let actualCommandFileName = this.commandNames.get(command.name);
-                    if (actualCommandFileName) {
-                        let fnCommand: Function = (await import(actualCommandFileName)).command;
-                        cmdFunc = new CmdFunc([], fnCommand, true);
-                    }
+                    if (actualCommandFileName)
+                        fnCommand = (await import(actualCommandFileName)).command;
                 }
+
+                if (fnCommand)
+                    cmdFunc = new CommandFunctionWrapper(fnCommand, true, this.logger, remoteCmdDependencies);
             }
 
             if (cmdFunc) {
-                this.commands.set(command.name, cmdFunc);
+                this.commandFunctionWrappers.set(command.name, cmdFunc);
                 br = await cmdFunc.call(command.args, this as IProcessor, message);
             }
              else
@@ -243,8 +250,9 @@ export class Processor implements IProcessor {
     }
 
     private processPossibleCommandTemplate(orgCommands: Array<Command>): Array<Command> {
-        let commands = new Array<Command>();
-        if (!this.isWebCommandsSource)
+        let commands = orgCommands;
+        if (!this.isWebCommandsSource) {  //TEMP
+            let commands = new Array<Command>();
             for (let  i = 0; i < orgCommands.length; i++) {
                 let command = orgCommands[i];
                 let asteriskIndex = command.name.indexOf(Processor.commandTemplateChar);
@@ -260,6 +268,7 @@ export class Processor implements IProcessor {
                 else
                     commands.push(command);
             }
+        }
 
         return commands;
     }

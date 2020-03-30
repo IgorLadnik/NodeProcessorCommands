@@ -44,7 +44,9 @@ export async function command(args: any, p: IProcessor): Promise<boolean> {
 
     const httpOpenApiServerProvider = new HttpOpenApiServerProvider(apiDoc, rootDir, port, logger);
 
-    let br = await p.executeParallel(new Command('cmdOpenApi*', httpOpenApiServerProvider));
+    //let br = await p.executeParallel(new Command('cmdOpenApi*', httpOpenApiServerProvider));
+    let br = await p.executeParallel(new Command('cmdOpenApiGetById', httpOpenApiServerProvider),
+                                     new Command('cmdOpenApiPostByName', httpOpenApiServerProvider));
     if (br)
         br = await httpOpenApiServerProvider.start();
 

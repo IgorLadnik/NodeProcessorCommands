@@ -12,7 +12,9 @@ export async function command(args: any, p: IProcessor): Promise<boolean> {
     if (Utils.isValid(httpServer)) {
         logger.log(`${thisCommandName}: http server created and is listening on port = ${port}`);
 
-        return await p.execute(new Command('cmdRest*', httpServer));
+        //return await p.execute(new Command('cmdRest*', httpServer));
+        return await p.execute(new Command('cmdRest', httpServer),
+                               new Command('cmdRestA', httpServer));
     }
 
     return false;
