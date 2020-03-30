@@ -1,12 +1,9 @@
-import { Command } from "../models/command";
-import { IProcessor } from "../interfaces/iprocessor";
-import { HttpServerProvider } from '../infrastructure/httpServerProvider';
-import { Config } from '../config';
-import {Utils} from "../infrastructure/utils";
-
-export async function command(args: any, p: IProcessor): Promise<boolean> {
+export async function command(args: any, p: any): Promise<boolean> {
     const thisCommandName = 'cmdRestA';
     let logger = p.getLogger();
+
+    const Command = require(p.getWorkingDir() + '/models/command').Command;
+    const Utils = require(p.getWorkingDir() + '/infrastructure/utils').Utils;
 
     let httpServer = args;
     if (!Utils.isValid(httpServer)) {

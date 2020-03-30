@@ -1,11 +1,10 @@
-import { Command } from '../models/command';
-import { IProcessor } from "../interfaces/iprocessor";
-import { Config } from "../config";
-
-export async function command(args: any, p: IProcessor): Promise<boolean> {
+export async function command(args: any, p: any): Promise<boolean> {
     const thisCommandName = 'cmdBootstrap';
     let logger = p.getLogger();
     logger.log(thisCommandName);
+
+    const Command = require(p.getWorkingDir() + '/models/command').Command;
+    const Config = require(p.getWorkingDir() + '/config').Config;
 
     let br = await p.execute(new Command('cmdCreateHttpServer', Config.httpServer.ports[0]));
 

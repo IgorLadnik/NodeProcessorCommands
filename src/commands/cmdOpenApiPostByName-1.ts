@@ -1,12 +1,7 @@
-import { Command } from "../models/command";
-import { IProcessor } from "../interfaces/iprocessor";
-import { Utils } from "../infrastructure/utils";
-import { HttpOpenApiServerProvider } from '../infrastructure/httpOpenApiServerProvider';
-
-export async function command(args: any, p: IProcessor): Promise<boolean> {
+export async function command(args: any, p: any): Promise<boolean> {
     const thisCommandName = 'cmdOpenApiPostByName';
     let logger = p.getLogger();
-    let httpOpenApiServerProvider = args as HttpOpenApiServerProvider;
+    let httpOpenApiServerProvider = args;
 
     const dir = `${httpOpenApiServerProvider.rootDir}/pets`;
 

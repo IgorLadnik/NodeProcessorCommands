@@ -1,10 +1,9 @@
-import { IProcessor } from "../interfaces/iprocessor";
-import { HttpOpenApiServerProvider } from '../infrastructure/httpOpenApiServerProvider';
-import { Command } from "../models/command";
-
-export async function command(args: any, p: IProcessor): Promise<boolean> {
+export async function command(args: any, p: any): Promise<boolean> {
     const thisCommandName = 'cmdCreateHttpOpenApiServer';
     let logger = p.getLogger();
+
+    const Command = require(p.getWorkingDir() + '/models/command').Command;
+    const HttpOpenApiServerProvider = require(p.getWorkingDir() + '/infrastructure/httpOpenApiServerProvider').HttpOpenApiServerProvider;
 
     const port = args as number;
     const rootDir = '/v1';
