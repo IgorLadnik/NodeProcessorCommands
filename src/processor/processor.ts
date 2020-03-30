@@ -150,26 +150,26 @@ export class Processor implements IProcessor {
     private async executeOne(command: Command, message: Message = Processor.defaultMessage): Promise<boolean> {
         let br = false;
         try {
-            let cmd: CmdFunc = this.commands.get(command.name);
-            if (!cmd) {
+            let cmdFunc: CmdFunc = this.commands.get(command.name);
+            if (!cmdFunc) {
                 if (this.isWebCommandsSource) {
                     // Remote commands
                     // TEMP
-                    cmd = await this.remoteCodeLoader.importRemoteCode(`${command.name}.js`, ...[]);
+                    cmdFunc = await this.remoteCodeLoader.importRemoteCode(`${command.name}.js`, ...[]);
                 }
                 else {
                     // Local commands
                     let actualCommandFileName = this.commandNames.get(command.name);
                     if (actualCommandFileName) {
                         let fnCommand: Function = (await import(actualCommandFileName)).command;
-                        cmd = new CmdFunc([], fnCommand, true);
+                        cmdFunc = new CmdFunc([], fnCommand, true);
                     }
                 }
             }
 
-            if (cmd) {
-                this.commands.set(command.name, cmd);
-                br = await cmd.call(command.args, this as IProcessor, message);
+            if (cmdFunc) {
+                this.commands.set(command.name, cmdFunc);
+                br = await cmdFunc.call(command.args, this as IProcessor, message);
             }
              else
                 this.logger.log(`Error: file for command \"${command.name}\" does not exists`);
