@@ -174,15 +174,15 @@ export class Processor implements IProcessor {
                         fnCommand = (await import(actualCommandFileName)).command;
                 }
 
-                if (fnCommand)
-                    cmdFunc = new CommandFunctionWrapper(fnCommand, true, this.logger/*, remoteCmdDependencies*/);
+                if (fnCommand) {
+                    cmdFunc = new CommandFunctionWrapper(fnCommand, this.logger/*, remoteCmdDependencies*/);
+                    this.commandFunctionWrappers.set(command.name, cmdFunc);
+                }
             }
 
-            if (cmdFunc) {
-                this.commandFunctionWrappers.set(command.name, cmdFunc);
+            if (cmdFunc)
                 br = await cmdFunc.call(command.args, this as IProcessor, message);
-            }
-             else
+            else
                 this.logger.log(`Error: file for command \"${command.name}\" does not exists`);
         }
         catch (err) {

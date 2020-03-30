@@ -2,14 +2,10 @@ import { ILogger } from "../interfaces/ilogger";
 
 export class CommandFunctionWrapper {
     constructor(private fn: Function,
-                private readonly isValid: boolean,
                 private readonly l: ILogger/*,
                 private readonly dependencies: Array<any> = []*/) { }
 
     async call(...args: Array<any>): Promise<boolean> {
-        if (!this.isValid)
-            return false;
-
         //let arr = ArrayUtils.merge(args, this.dependencies);
         let arr = args;
 
