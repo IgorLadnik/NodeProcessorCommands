@@ -7,7 +7,7 @@ export class Config {
 
     static readonly commandSets = [{
         webRepo: '',
-        dir: '/commands/',
+        dir: 'commands',
         bootstrapCommandName: 'cmdBootstrap'
     }];
 

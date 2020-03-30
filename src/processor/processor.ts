@@ -70,6 +70,8 @@ export class Processor implements IProcessor {
             }
         }
 
+        this.logger.log(`${this.isWebCommandsSource ? 'Web' : 'Local'} command repository is used`);
+
         this.logger.log(`Message broker is ${this.isPubCons ? '' : 'NOT '}supported`);
         this.logger.log(`Processor \"${this.id}\" initialized and runs its bootstrap command \"${this.processorBootstrapCommandName}\"`);
 
