@@ -3,9 +3,9 @@ import { ILogger } from './ilogger';
 
 export interface IProcessor {
     // Get general info / resources from processor
-    getId(): string;
+    readonly id: string;
+    readonly workingDir: string;
     getLogger(): ILogger;
-    getWorkingDir(): string;
 
     // get / set custom resources from / to processor
     getResource(resourceName: string): any

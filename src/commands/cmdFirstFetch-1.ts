@@ -2,7 +2,7 @@ export async function command(args: any, p: any, message: any): Promise<boolean>
     const thisCommandName = 'cmdFirstFetch';
     let logger = p.getLogger();
 
-    const Utils = require(p.getWorkingDir() + '/infrastructure/utils').Utils;
+    const Utils = (await import(`${p.workingDir}/infrastructure/utils`)).Utils;
 
     let sql = p.getResource('sql');
     if (!Utils.isValid(sql))

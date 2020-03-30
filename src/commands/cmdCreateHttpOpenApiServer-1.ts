@@ -2,8 +2,8 @@ export async function command(args: any, p: any): Promise<boolean> {
     const thisCommandName = 'cmdCreateHttpOpenApiServer';
     let logger = p.getLogger();
 
-    const Command = require(p.getWorkingDir() + '/models/command').Command;
-    const HttpOpenApiServerProvider = require(p.getWorkingDir() + '/infrastructure/httpOpenApiServerProvider').HttpOpenApiServerProvider;
+    const Command = (await import(`${p.workingDir}/models/command`)).Command;
+    const HttpOpenApiServerProvider = (await import(`${p.workingDir}/infrastructure/httpOpenApiServerProvider`)).HttpOpenApiServerProvider;
 
     const port = args as number;
     const rootDir = '/v1';

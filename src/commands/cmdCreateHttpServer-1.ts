@@ -2,9 +2,9 @@ export async function command(args: any, p: any): Promise<boolean> {
     const thisCommandName = 'cmdCreateHttpServer';
     let logger = p.getLogger();
 
-    const Command = require(p.getWorkingDir() + '/models/command').Command;
-    const HttpServerProvider = require(p.getWorkingDir() + '/infrastructure/httpServerProvider').HttpServerProvider;
-    const Utils = require(p.getWorkingDir() + '/infrastructure/utils').Utils;
+    const Command = (await import(`${p.workingDir}/models/command`)).Command;
+    const HttpServerProvider = (await import(`${p.workingDir}/infrastructure/httpServerProvider`)).HttpServerProvider;
+    const Utils = (await import(`${p.workingDir}/infrastructure/utils`)).Utils;
 
     const port = args as number;
     const httpServer = new HttpServerProvider(port, logger).server;

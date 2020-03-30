@@ -17,13 +17,11 @@ export class Processor implements IProcessor {
     private static readonly commandTemplateChar = '*';
     private static readonly defaultMessage = new Message();
 
-    private readonly id: string;
     private readonly parallelCmdName = '';
     private readonly commandFunctionWrappers = new Dictionary<string, CommandFunctionWrapper>();
     private readonly publishers = new Dictionary<string, IPublisher>();
     private readonly resources = new Dictionary<string, any>();
     private readonly commandNames = new Dictionary<string, string>();
-    private readonly workingDir: string;
     private readonly commandsSource: string;
     private readonly isWebCommandsSource: boolean;
     private readonly processorBootstrapCommandName: string;
@@ -90,11 +88,10 @@ export class Processor implements IProcessor {
 
     // Get general info / resources from processor
 
-    getId = (): string => this.id;
+    public readonly id: string;
+    public readonly workingDir: string;
 
     getLogger = (): ILogger => this.logger;
-
-    getWorkingDir = (): string => this.workingDir;
 
     // Resources
 

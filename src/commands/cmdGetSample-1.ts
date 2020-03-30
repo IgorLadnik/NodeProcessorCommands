@@ -2,8 +2,8 @@ export async function command(args: any, p: any, message: any): Promise<boolean>
     const thisCommandName = 'cmdGetSample';
     let logger = p.getLogger();
 
-    const Command = require(p.getWorkingDir() + '/models/command').Command;
-    const Utils = require(p.getWorkingDir() + '/infrastructure/utils').Utils;
+    const Command = (await import(`${p.workingDir}/models/command`)).Command;
+    const Utils = (await import(`${p.workingDir}/infrastructure/utils`)).Utils;
 
     let sql = p.getResource('sql');
     if (!Utils.isValid(sql)) {

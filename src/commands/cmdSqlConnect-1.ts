@@ -2,8 +2,8 @@ export async function command(args: any, p: any): Promise<boolean> {
     let logger = p.getLogger();
     logger.log(`cmdSqlConnect: args: ${JSON.stringify(args)}`);
 
-    const SqlServerProvider = require(p.getWorkingDir() + '/infrastructure/SqlServerProvider').SqlServerProvider;
-    const Config = require(p.getWorkingDir() + '/config').Config;
+    const SqlServerProvider = (await import(`${p.workingDir}/infrastructure/SqlServerProvider`)).SqlServerProvider;
+    const Config = (await import(`${p.workingDir}/config`)).Config;
 
     let server = Config.sqlServer.host;
     let database = Config.sqlServer.databases[0];
