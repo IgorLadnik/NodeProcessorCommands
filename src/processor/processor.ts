@@ -33,7 +33,7 @@ export class Processor implements IProcessor {
     private messageBrokerFactory: IMessageBrokerFactory;
     private isPubCons = false;
     private remoteCodeLoader: RemoteCommandLoader;
-    private remoteCmdDependencies: Array<any>;
+    //private remoteCmdDependencies: Array<any>;
 
     constructor(commandSetNum: number = 0) {
         this.id = `processor-${uuidv4()}`;
@@ -57,7 +57,7 @@ export class Processor implements IProcessor {
 
         //TEMP
         if (this.isWebCommandsSource) {
-            this.remoteCmdDependencies = [ require, new RemoteCommandLoader(this.commandsSource, this.logger) ];
+            //this.remoteCmdDependencies = [ *require, new RemoteCommandLoader(this.commandsSource, this.logger)*/ ];
             this.remoteCodeLoader = new RemoteCommandLoader(this.commandsSource, this.logger);
         }
 
@@ -93,6 +93,8 @@ export class Processor implements IProcessor {
     getId = (): string => this.id;
 
     getLogger = (): ILogger => this.logger;
+
+    getWorkingDir = (): string => this.workingDir;
 
     // Resources
 
@@ -158,12 +160,12 @@ export class Processor implements IProcessor {
             let cmdFunc: CommandFunctionWrapper = this.commandFunctionWrappers.get(command.name);
             if (!cmdFunc) {
                 let fnCommand;
-                let remoteCmdDependencies = [];
+                //let remoteCmdDependencies = [];
 
                 if (this.isWebCommandsSource) {
                     // Remote commands
                     fnCommand = await this.remoteCodeLoader.import(`${command.name}-1.js`); //TEMP
-                    remoteCmdDependencies = this.remoteCmdDependencies;
+                    //remoteCmdDependencies = this.remoteCmdDependencies;
                 }
                 else {
                     // Local commands
@@ -173,7 +175,7 @@ export class Processor implements IProcessor {
                 }
 
                 if (fnCommand)
-                    cmdFunc = new CommandFunctionWrapper(fnCommand, true, this.logger, remoteCmdDependencies);
+                    cmdFunc = new CommandFunctionWrapper(fnCommand, true, this.logger/*, remoteCmdDependencies*/);
             }
 
             if (cmdFunc) {
