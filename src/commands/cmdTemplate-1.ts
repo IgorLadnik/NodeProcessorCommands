@@ -21,8 +21,9 @@ export async function command(args: any, p: any, message: any): Promise<boolean>
     const HttpOpenApiServerProvider = (await import(`${p.workingDir}/infrastructure/httpOpenApiServerProvider`)).HttpOpenApiServerProvider;
     const SqlServerProvider = (await import(`${p.workingDir}/infrastructure/SqlServerProvider`)).SqlServerProvider;
     
-    // Provide busness logic here
+    // Provide business logic here
 
     logger.log(`Command ${thisCommandName} ended`);
+    
     return true;
 }
