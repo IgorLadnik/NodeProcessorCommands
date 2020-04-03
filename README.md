@@ -40,6 +40,12 @@ Browser:<br/>
 - simple test with database access: http://localhost:19019<br/>
 - Open API (Swagger):               http://localhost:19020/v1<br/>
 
+<p>
+Commands should use dependencies providing full local path to them.
+This can be achieved with IProcessor interface available as an argument of command function like, for example:<br/>
+<br/><i>const Command = require(`${p.workingDir}/models/command`).Command;</i>
+</p>
+
 # Limitations
 
 Please note that some commands in <i>master</i> branch 
@@ -48,11 +54,6 @@ Please note that some commands in <i>master</i> branch
 
 # Known Issues
 
-<p>
-Commands should use dependencies providing full local path to them.
-This can be achieved with IProcessor interface available as an argument of command function like, for example:<br/>
-<br/><i>const Command = require(`${p.workingDir}/models/command`).Command;</i>
-</p>
 <p>
 Currently multiple remote commands can not be called using command template with asterisk "*" due to lack of file server support.
 </p>
