@@ -157,7 +157,7 @@ export class Processor implements IProcessor {
 
                 if (this.isWebCommandsSource)
                     // Remote commands
-                    fnCommand = this.remoteCodeLoader.import(`${command.name}-1.js`); //TEMP
+                    fnCommand = await this.remoteCodeLoader.importCommand2(`${command.name}-1.js`); //TEMP
                 else {
                     // Local commands
                     let actualCommandFileName = this.commandNames.get(command.name);
@@ -174,7 +174,7 @@ export class Processor implements IProcessor {
             if (cmdFunc)
                 br = await cmdFunc.call(command.args, this as IProcessor, message);
             else
-                this.logger.log(`Error: file for command \"${command.name}\" does not exists`);
+                this.logger.log(`Error: execution of command \"${command.name}\" has failed`);
         }
         catch (err) {
             this.logger.log(err);
