@@ -125,6 +125,12 @@ export class Processor implements IProcessor {
     executeParallel = async (...commands: Array<Command>): Promise<boolean> =>
         await this.executeManyInParallel(this.processPossibleCommandTemplate(commands));
 
+    executeFork = (delayInMs: number, ...commands: Array<Command>) =>
+        setTimeout(async () => await this.execute(...commands), delayInMs);
+
+    executeForkParallel = (delayInMs: number, ...commands: Array<Command>) =>
+        setTimeout(async () => await this.executeParallel(...commands), delayInMs);
+
 
     // Publish methods
 

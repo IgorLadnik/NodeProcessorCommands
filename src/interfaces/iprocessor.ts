@@ -15,6 +15,8 @@ export interface IProcessor {
     // Immediate execution of commands
     execute(...commands: Array<Command>): Promise<boolean>;
     executeParallel(...commands: Array<Command>): Promise<boolean>;
+    executeFork(delayInMs: number, ...commands: Array<Command>): void;
+    executeForkParallel(delayInMs: number, ...commands: Array<Command>): void;
 
     // Message broker (queueing) support is an optional. RabbitMQ is used as message broker in this project,
     // but other MQs may be used in stead since Publisher and Consumer are used through their interfaces.

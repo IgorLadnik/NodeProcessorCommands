@@ -13,6 +13,16 @@ export async function command(args: any, p: any): Promise<boolean> {
     if (br)
         br = await p.execute(new Command('cmdCreateHttpOpenApiServer', Config.httpServer.ports[1]));
 
+    logger.log('before fork cmdTestP 1001');
+    p.executeFork(1000, new Command('cmdTestP', {order: 1001}),
+                                  new Command('cmdTestP', {order: 1002}));
+    logger.log('after fork cmdTestP 1001');
+
+    logger.log('before fork parallel cmdTestP 2001');
+    p.executeForkParallel(1000, new Command('cmdTestP', {order: 2001}),
+                                          new Command('cmdTestP', {order: 2002}));
+    logger.log('after fork parallel cmdTestP 2002');
+
     if (br) {
         br = false;
         let commandFirstFetch = new Command('cmdFirstFetch', {a: 'aaa', n: 1});
