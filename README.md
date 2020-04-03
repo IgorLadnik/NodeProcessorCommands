@@ -49,7 +49,7 @@ This can be achieved with IProcessor interface available as an argument of comma
 # Limitations
 
 Please note that some commands in <i>master</i> branch 
-- deal with local database not available here, and<br/>
+- deal with local resources (SQL Server and RabbitMQ) not available here, and<br/>
 - for remote commands upload a simple file server is required (it may be found here: https://github.com/IgorLadnik/file-server).<br/> 
 
 # Known Issues
