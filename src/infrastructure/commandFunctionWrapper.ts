@@ -1,16 +1,11 @@
 import { ILogger } from "../interfaces/ilogger";
 
 export class CommandFunctionWrapper {
-    constructor(private fn: Function,
-                private readonly l: ILogger/*,
-                private readonly dependencies: Array<any> = []*/) { }
+    constructor(private fn: Function, private readonly l: ILogger) { }
 
     async call(...args: Array<any>): Promise<boolean> {
-        //let arr = ArrayUtils.merge(args, this.dependencies);
-        let arr = args;
-
         try {
-            return await this.fn(...arr);
+            return await this.fn(...args);
         }
         catch (err){
             this.l.log(`ERROR: ${err}`);
@@ -19,14 +14,3 @@ export class CommandFunctionWrapper {
     }
 }
 
-// class ArrayUtils {
-//     static merge(arr1: Array<any>, arr2: Array<any>): Array<any> {
-//         let arr = new Array<any>();
-//         for (let i = 0; i < arr1.length; i++)
-//             arr.push(arr1[i]);
-//         for (let i = 0; i < arr2.length; i++)
-//             arr.push(arr2[i]);
-//
-//         return arr;
-//     }
-// }

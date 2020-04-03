@@ -31,7 +31,6 @@ export class Processor implements IProcessor {
     private messageBrokerFactory: IMessageBrokerFactory;
     private isPubCons = false;
     private remoteCodeLoader: RemoteCommandLoader;
-    //private remoteCmdDependencies: Array<any>;
 
     constructor(commandSetNum: number = 0) {
         this.id = `processor-${uuidv4()}`;
@@ -54,10 +53,8 @@ export class Processor implements IProcessor {
         this.logger.log(`Processor ${this.id} started`);
 
         //TEMP
-        if (this.isWebCommandsSource) {
-            //this.remoteCmdDependencies = [ *require, new RemoteCommandLoader(this.commandsSource, this.logger)*/ ];
+        if (this.isWebCommandsSource)
             this.remoteCodeLoader = new RemoteCommandLoader(this.commandsSource, this.logger);
-        }
 
         if (this.isPubCons) {
             try {
@@ -157,13 +154,10 @@ export class Processor implements IProcessor {
             let cmdFunc: CommandFunctionWrapper = this.commandFunctionWrappers.get(command.name);
             if (!cmdFunc) {
                 let fnCommand;
-                //let remoteCmdDependencies = [];
 
-                if (this.isWebCommandsSource) {
+                if (this.isWebCommandsSource)
                     // Remote commands
-                    fnCommand = await this.remoteCodeLoader.import(`${command.name}-1.js`); //TEMP
-                    //remoteCmdDependencies = this.remoteCmdDependencies;
-                }
+                    fnCommand = this.remoteCodeLoader.import(`${command.name}-1.js`); //TEMP
                 else {
                     // Local commands
                     let actualCommandFileName = this.commandNames.get(command.name);
@@ -172,7 +166,7 @@ export class Processor implements IProcessor {
                 }
 
                 if (fnCommand) {
-                    cmdFunc = new CommandFunctionWrapper(fnCommand, this.logger/*, remoteCmdDependencies*/);
+                    cmdFunc = new CommandFunctionWrapper(fnCommand, this.logger);
                     this.commandFunctionWrappers.set(command.name, cmdFunc);
                 }
             }
