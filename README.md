@@ -29,10 +29,11 @@ Such an approach to service implementation has several important merits:<br/>
 
 # Notes
 
-After download the followng command should be performed:<br/>
+After download the followng commands should be performed from command line in order to run service:<br/>
 
 <i>npm install</i><br/>
 <i>tsc</i><br/>
+<i>node dist/app.js</i><br/>
 
 To test application run it either in VS Code / WebStorm or with file <i>start.cmd</i>.<br/>
 
