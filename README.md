@@ -52,6 +52,8 @@ Please note that some commands in <i>master</i> branch
 - deal with local resources (SQL Server and RabbitMQ) not available here, and<br/>
 - for remote commands upload a simple file server is required (it may be found here: https://github.com/IgorLadnik/file-server).<br/> 
 
+To avoid usage of unavailable resources software from <i>simplify</i> branch may be used (although currently it is less advanced, e.g. not yet supports remote commands loading).
+
 # Known Issues
 
 <p>
