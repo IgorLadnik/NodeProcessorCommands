@@ -8,7 +8,7 @@ In the command signature:
                      Usually is not used.
 */
 export async function command(args: any, p: any, message: any): Promise<boolean> {
-    const thisCommandName = 'cmdTemplate';
+    const thisCommandName = 'cmdTemplate'; // Replace with actual command name
     let logger = p.getLogger();
 
     logger.log(`Command ${thisCommandName} started  args: ${JSON.stringify(args)} ${!message.isEmpty ? `, message: ${message}` : ''}`);

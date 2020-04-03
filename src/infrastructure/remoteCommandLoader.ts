@@ -13,7 +13,7 @@ export class RemoteCommandLoader {
             fnCommand = requireFromUrl(url).command;
         }
         catch (err) {
-            this.l.log(`*** ERROR: ${err}`);
+            this.l.log(`Error in requireFromUrl \"${url}\": ${err}, stack: ${err.stack}`);
             return new Function();
         }
 
