@@ -17,7 +17,7 @@ Commands are very flexible.
 They can call another commands in either in series or in parallel way, sync- or asynchronous.
 Commands in their course of actions do anything, e.g. create Web servers, access database, perform business logic.
 </p>
-<p>
+
 Such an approach to service implementation has several important merits:<br/>
 - the most complex part of service software (which is processor) is universal and changed seldom,<br/>
 - service is very flexible allowing to implement any domain configuration by selecting appropriate set of comamnds,<br/>
@@ -25,7 +25,6 @@ Such an approach to service implementation has several important merits:<br/>
 - easy scaling since all services (processors) are the same,<br/>
 - allows service to easily support different versions of commands for different clients,<br/>
 - from organizational perspective, it is easy to develop fine granulated commands without bothering of infrastructure issues, especially for new developrs.<br/>
-</p>
 
 # Notes
 
