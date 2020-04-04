@@ -2,8 +2,8 @@
 
 <p>
 The main idea behind this project is to provide a "universal" infrastructure to a service.
-The service contains of two strictly separated parts, namely, Processor and Commands.
-The processor is responsible for the service's infrastructure and provides mechanism for execution of commands.
+The service consists of two strictly separated parts, namely, Processor and Commands.
+The processor is responsible for service infrastructure and provides mechanism for execution of commands.
 </p>
 <p>
 Processor is universal stable seldom changed part of a service.
@@ -18,9 +18,11 @@ They can call another commands in either in series or in parallel way, sync- or 
 Commands in their course of actions do anything, e.g. create Web servers, access database, perform business logic.
 </p>
 
+# Merits
+
 Such an approach to service implementation has several important merits:<br/>
-- the most complex part of service software (which is processor) is universal and changed seldom,<br/>
-- service is very flexible allowing to implement any domain configuration by selecting appropriate set of commands,<br/>
+- the most complex part of service software (which is processor) is universal and changed seldom, which reduces developers efforts and amount of required testing,<br/>
+- service is very flexible allowing implementation of different configurations by selecting appropriate set of commands,<br/>
 - ensures better performance for commands chain execution since all commands may be fulfilled localy in one process without network communication with other services,<br/>
 - possibility to change commands (and therefore service behavior) "on the fly" without service redeployment and even restart,<br/>
 - easy scaling since all services (processors) are the same,<br/>
@@ -39,11 +41,11 @@ To test application run it either in VS Code / WebStorm or with file <i>start.cm
 
 Browser:<br/>
 - simple test with database access: http://localhost:19019 (<i>master</i> branch only)<br/>
-- Open API (Swagger):               http://localhost:19020/v1 (both <i>master</i> and <i>ready-to-run</i> branches only)<br/>
+- Open API (Swagger):               http://localhost:19020/v1 (both <i>master</i> and <i>ready-to-run</i> branches)<br/>
 
 <p>
-Commands should use dependencies providing full local path to them.
-This can be achieved with IProcessor interface available as an argument of command function like, for example:<br/>
+Using dependencies, command should provide full local path to them.
+This can be achieved with object <i>p</i> of IProcessor interface available as an argument of command function like, for example:<br/>
 <br/><i>const Command = require(`${p.workingDir}/models/command`).Command;</i>
 </p>
 
@@ -58,5 +60,5 @@ To avoid usage of unavailable resources software from <i>ready-to-run</i> branch
 # Known Issues
 
 <p>
-Currently multiple remote commands can not be called using command template with asterisk "*" due to lack of file server support.
+Currently multiple remote commands can not be called using command name template with asterisk "*" due to lack of file server support.
 </p>
