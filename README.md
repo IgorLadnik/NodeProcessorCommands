@@ -38,8 +38,8 @@ After download the followng commands should be performed from command line in or
 To test application run it either in VS Code / WebStorm or with file <i>start.cmd</i>.<br/>
 
 Browser:<br/>
-- simple test with database access: http://localhost:19019<br/>
-- Open API (Swagger):               http://localhost:19020/v1<br/>
+- simple test with database access: http://localhost:19019 (<i>master</i> branch only)<br/>
+- Open API (Swagger):               http://localhost:19020/v1 (both <i>master</i> and <i>ready-to-run</i> branches only)<br/>
 
 <p>
 Commands should use dependencies providing full local path to them.
@@ -53,7 +53,7 @@ Please note that some commands in <i>master</i> branch
 - deal with local resources (SQL Server and RabbitMQ) not available here, and<br/>
 - for remote commands upload a simple file server is required (it may be found here: https://github.com/IgorLadnik/file-server).<br/> 
 
-To avoid usage of unavailable resources software from <i>simplify</i> branch may be used (although currently it is less advanced, e.g. not yet supports remote commands loading).
+To avoid usage of unavailable resources software from <i>ready-to-run</i> branch may be used.
 
 # Known Issues
 
