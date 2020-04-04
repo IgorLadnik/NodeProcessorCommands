@@ -11,7 +11,7 @@ Its the only purpose is to ensure execution of commands.
 </p>
 <p>
 In contrast, commands are volatile pieces of code responsible for actual service activities.
-Each command constitutes a function with uniform signature that is uploaded by processor at runtime from either local or remore ropository.
+Each command constitutes a function with uniform signature that is uploaded by processor at runtime from either local or remote ropository.
 These functions carry out various business tasks.
 Commands are very flexible.
 They can call another commands in either in series or in parallel way, sync- or asynchronous.
