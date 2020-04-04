@@ -14,7 +14,7 @@ In contrast, commands are volatile pieces of code responsible for actual service
 Each command constitutes a function with uniform signature that is uploaded by processor at runtime from either local or remote ropository.
 These functions carry out various business tasks.
 Commands are very flexible.
-They can call another commands in either in series or in parallel way, sync- or asynchronous.
+They can call another commands in either series or parallel way, sync- or asynchronous.
 Commands in their course of actions do anything, e.g. create Web servers, access database, perform business logic.
 </p>
 
