@@ -24,7 +24,7 @@ Such an approach to service implementation has several important merits:<br/>
 - the most complex part of service software (which is processor) is universal and changed seldom, which reduces developers efforts and amount of required testing,<br/>
 - service is very flexible allowing implementation of different configurations by selecting appropriate set of commands,<br/>
 - due to flexibility of commands may be used for a wide range of products with the same processor,
-- ensures better performance for commands chain execution since all commands may be run localy in one process without network communication with other services,<br/>
+- ensures better performance for commands chain execution since all commands may be run locally in one process without network communication with other services,<br/>
 - possibility to change commands (and therefore service behavior) "on the fly" without service redeployment and even restart,<br/>
 - easy scaling since all services (processors) are the same,<br/>
 - allows service to easily support different versions of commands for different clients,<br/>
