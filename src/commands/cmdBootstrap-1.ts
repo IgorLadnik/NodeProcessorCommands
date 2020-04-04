@@ -3,10 +3,10 @@ export async function command(args: any, p: any): Promise<boolean> {
     let logger = p.getLogger();
     logger.log(thisCommandName);
 
-    //const Command = require(`${p.workingDir}/models/command`).Command;
-    //const Config = require(`${p.workingDir}/config`).Config;
-    const Command = (await import(`${p.workingDir}/models/command`)).Command;
-    const Config = (await import(`${p.workingDir}/config`)).Config;
+    //const Command = (await import(`${p.workingDir}/models/command`)).Command;
+    //const Config = (await import(`${p.workingDir}/config`)).Config;
+    const Command = require(`${p.workingDir}/models/command`).Command;
+    const Config = require(`${p.workingDir}/config`).Config;
 
     let br = await p.execute(new Command('cmdCreateHttpServer', Config.httpServer.ports[0]));
 
