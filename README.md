@@ -28,7 +28,7 @@ Such an approach to service implementation has several important merits:<br/>
 - possibility to change commands (and therefore service behavior) "on the fly" without service redeployment and even restart,<br/>
 - easy scaling since all services (processors) are the same,<br/>
 - allows service to easily support different versions of commands for different clients,<br/>
-- from organizational perspective, it is easy to develop fine granulated commands without bothering of infrastructure issues, especially for new developrs.<br/>
+- from organizational perspective, it is easy to develop fine granulated commands without bothering of infrastructure issues, especially for new developers.<br/>
 
 # Notes
 
