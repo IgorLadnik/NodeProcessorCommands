@@ -11,8 +11,8 @@ Its the only purpose is to ensure execution of commands.
 </p>
 <p>
 In contrast, commands are volatile pieces of code responsible to actual service activities.
-Each command constitutes a function with uniform signature that is uploaded by processor at runtime.
-These functions bodies are different and carry out domain tasks.
+Each command constitutes a function with uniform signature that is uploaded by processor at runtime from either local or remore ropository.
+These functions carry out various business tasks.
 Commands are very flexible.
 They can call another commands in either in series or in parallel way, sync- or asynchronous.
 Commands in their course of actions do anything, e.g. create Web servers, access database, perform business logic.
@@ -23,6 +23,7 @@ Commands in their course of actions do anything, e.g. create Web servers, access
 Such an approach to service implementation has several important merits:<br/>
 - the most complex part of service software (which is processor) is universal and changed seldom, which reduces developers efforts and amount of required testing,<br/>
 - service is very flexible allowing implementation of different configurations by selecting appropriate set of commands,<br/>
+- due to flexibility of commands may be used for a wide range of products with the same processor,
 - ensures better performance for commands chain execution since all commands may be fulfilled localy in one process without network communication with other services,<br/>
 - possibility to change commands (and therefore service behavior) "on the fly" without service redeployment and even restart,<br/>
 - easy scaling since all services (processors) are the same,<br/>
@@ -31,13 +32,13 @@ Such an approach to service implementation has several important merits:<br/>
 
 # Notes
 
-After download the followng commands should be performed from command line in order to run service:<br/>
+After download the followng programs should be called from command line in order to run service:<br/>
 
 <i>npm install</i><br/>
 <i>tsc</i><br/>
 <i>node dist/app.js</i><br/>
 
-To test application run it either in VS Code / WebStorm or with file <i>start.cmd</i>.<br/>
+To test application run it either in VS Code / WebStorm or (in Windows) with command file <i>start.cmd</i>.<br/>
 
 Browser:<br/>
 - simple test with database access: http://localhost:19019 (<i>master</i> branch only)<br/>
