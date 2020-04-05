@@ -10,11 +10,11 @@ Processor is universal stable seldom changed part of a service.
 Its the only purpose is to ensure execution of commands.
 </p>
 <p>
-In contrast, commands are volatile pieces of code responsible to actual service activities.
-Each command constitutes a function with uniform signature that is uploaded by processor at runtime from either local or remore ropository.
+In contrast, commands are volatile pieces of code responsible for actual service activities.
+Each command constitutes a function with uniform signature that is uploaded by processor at runtime from either local or remote ropository.
 These functions carry out various business tasks.
 Commands are very flexible.
-They can call another commands in either in series or in parallel way, sync- or asynchronous.
+They can call another commands in either series or parallel way, sync- or asynchronous.
 Commands in their course of actions do anything, e.g. create Web servers, access database, perform business logic.
 </p>
 
@@ -24,11 +24,11 @@ Such an approach to service implementation has several important merits:<br/>
 - the most complex part of service software (which is processor) is universal and changed seldom, which reduces developers efforts and amount of required testing,<br/>
 - service is very flexible allowing implementation of different configurations by selecting appropriate set of commands,<br/>
 - due to flexibility of commands may be used for a wide range of products with the same processor,
-- ensures better performance for commands chain execution since all commands may be fulfilled localy in one process without network communication with other services,<br/>
+- ensures better performance for commands chain execution since all commands may be run locally in one process without network communication with other services,<br/>
 - possibility to change commands (and therefore service behavior) "on the fly" without service redeployment and even restart,<br/>
 - easy scaling since all services (processors) are the same,<br/>
 - allows service to easily support different versions of commands for different clients,<br/>
-- from organizational perspective, it is easy to develop fine granulated commands without bothering of infrastructure issues, especially for new developrs.<br/>
+- from organizational perspective, it is easy to develop fine granulated commands without bothering of infrastructure issues, especially for new developers.<br/>
 
 # Notes
 
