@@ -1,3 +1,6 @@
+import { RemoteCommandLoader } from "../infrastructure/remoteCommandLoader";
+import * as child_process from 'child_process';
+
 export async function command(args: any, p: any): Promise<boolean> {
     const thisCommandName = 'cmdBootstrap';
     let logger = p.getLogger();
@@ -7,6 +10,10 @@ export async function command(args: any, p: any): Promise<boolean> {
     //const Config = (await import(`${p.workingDir}/config`)).Config;
     const Command = require(`${p.workingDir}/models/command`).Command;
     const Config = require(`${p.workingDir}/config`).Config;
+
+    // let buffer = child_process.execSync('npm install express');
+    // const express = require('express');
+    // const app = express();
 
     let br = await p.execute(new Command('cmdCreateHttpServer', Config.httpServer.ports[0]));
 
