@@ -36,6 +36,7 @@ export class Processor implements IProcessor {
     constructor(commandSetNum: number = 0) {
         this.id = `processor-${uuidv4()}`;
         this.workingDir = path.join(__dirname, '..');
+        this.stdImportDir = path.join(__dirname, '../../node_modules');
         let commandSet = Config.commandSets[commandSetNum];
         this. processorBootstrapCommandName = commandSet.bootstrapCommandName;
         this.isWebCommandsSource = Utils.isWeb(commandSet.webRepo);
@@ -88,6 +89,7 @@ export class Processor implements IProcessor {
 
     public readonly id: string;
     public readonly workingDir: string;
+    public readonly stdImportDir: string;
 
     getLogger = (): ILogger => this.logger;
 

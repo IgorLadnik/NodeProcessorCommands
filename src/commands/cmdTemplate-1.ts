@@ -14,6 +14,7 @@ export async function command(args: any, p: any, message: any): Promise<boolean>
     logger.log(`Command ${thisCommandName} started  args: ${JSON.stringify(args)} ${!message.isEmpty ? `, message: ${message}` : ''}`);
     
     // Currently available local dependencies. Please remove not used.
+    const _ = await import(`${p.stdImportDir}/lodash`);
     const Utils = (await import(`${p.workingDir}/infrastructure/utils`)).Utils;
     const Config = (await import(`${p.workingDir}/config`)).Config;
     const Command = (await import(`${p.workingDir}/models/command`)).Command;

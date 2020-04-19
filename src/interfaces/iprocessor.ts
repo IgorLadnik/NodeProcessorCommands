@@ -5,6 +5,7 @@ export interface IProcessor {
     // Get general info / resources from processor
     readonly id: string;
     readonly workingDir: string;
+    readonly stdImportDir: string;
     getLogger(): ILogger;
 
     // get / set custom resources from / to processor

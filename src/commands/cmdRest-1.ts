@@ -1,9 +1,8 @@
-import _ from 'lodash';
-
 export async function command(args: any, p: any): Promise<boolean> {
     const thisCommandName = 'cmdRest';
     let logger = p.getLogger();
 
+    const _ = await import(`${p.stdImportDir}/lodash`);
     const Command = (await import(`${p.workingDir}/models/command`)).Command;
 
     let httpServer = args;

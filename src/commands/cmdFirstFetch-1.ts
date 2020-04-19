@@ -1,9 +1,8 @@
-import _ from 'lodash'
-
 export async function command(args: any, p: any, message: any): Promise<boolean> {
     const thisCommandName = 'cmdFirstFetch';
     let logger = p.getLogger();
 
+    const _ = await import(`${p.stdImportDir}/lodash`);
     let sql = p.getResource('sql');
     if (_.isNil(sql))
         return false;
