@@ -1,11 +1,11 @@
+import _ from 'lodash'
+
 export async function command(args: any, p: any, message: any): Promise<boolean> {
     const thisCommandName = 'cmdFirstFetch';
     let logger = p.getLogger();
 
-    const Utils = (await import(`${p.workingDir}/infrastructure/utils`)).Utils;
-
     let sql = p.getResource('sql');
-    if (!Utils.isValid(sql))
+    if (_.isNil(sql))
         return false;
 
     const dbTable = 'Pets';

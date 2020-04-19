@@ -10,6 +10,7 @@
         "strict": true,
         "sourceMap": true,
         "watch": true,
+        "esModuleInterop": true,
         "strictPropertyInitialization": false //!
     },
 

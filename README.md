@@ -54,7 +54,8 @@ This can be achieved with object <i>p</i> of IProcessor interface available as a
 
 Please note that some commands in <i>master</i> branch 
 - deal with local resources (SQL Server and RabbitMQ) not available here, and<br/>
-- for remote commands upload a simple file server is required (it may be found here: https://github.com/IgorLadnik/file-server).<br/> 
+- for remote commands upload a simple file server is required (it may be found here: https://github.com/IgorLadnik/file-server).
+<br/> 
 
 To avoid usage of unavailable resources software from <i>ready-to-run</i> branch may be used.
 

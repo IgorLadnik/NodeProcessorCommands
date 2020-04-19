@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 export async function command(args: any, p: any): Promise<boolean> {
     const thisCommandName = 'cmdRestA';
     let logger = p.getLogger();
@@ -6,7 +8,7 @@ export async function command(args: any, p: any): Promise<boolean> {
     const Utils = (await import(`${p.workingDir}/infrastructure/utils`)).Utils;
 
     let httpServer = args;
-    if (!Utils.isValid(httpServer)) {
+    if (_.isNil(httpServer)) {
         logger.log(`Error in command \"${thisCommandName}\" http server is not available`);
         return false;
     }

@@ -9,6 +9,7 @@ import { IMessageBrokerFactory, IPublisher, IConsumer } from '../interfaces/mess
 import { Utils } from '../infrastructure/utils';
 import { RemoteCommandLoader } from '../infrastructure/remoteCommandLoader';
 import { CommandFunctionWrapper } from '../infrastructure/commandFunctionWrapper';
+import _ from 'lodash';
 const path = require('path');
 const fs = require('fs');
 const  urlJoin = require('url-join');
@@ -42,9 +43,9 @@ export class Processor implements IProcessor {
                 ? urlJoin(commandSet.webRepo, commandSet.dir)
                 : path.join(this.workingDir, commandSet.dir);
         this.createCommandFileLookup();
-        this.isPubCons = Utils.isValid(Config.messageBroker) &&
+        this.isPubCons = !_.isNil(Config.messageBroker) &&
                          Utils.isNotEmptyString(Config.messageBroker.factoryFilePath) &&
-                         Utils.isValid(Config.messageBroker.queueNames) &&
+                         !_.isNil(Config.messageBroker.queueNames) &&
                          Config.messageBroker.queueNames.length > 0;
     }
 
