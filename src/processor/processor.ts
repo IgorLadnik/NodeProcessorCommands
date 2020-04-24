@@ -34,14 +34,16 @@ export class Processor implements IProcessor {
     private remoteCodeLoader: RemoteCommandLoader;
 
     constructor(commandSetNum: number = 0) {
+        Config.createConfig();
+
         this.id = `processor-${uuidv4()}`;
         this.workingDir = path.join(__dirname, '..');
         this.stdImportDir = path.join(__dirname, '../../node_modules');
         let commandSet = Config.commandSets[commandSetNum];
         this. processorBootstrapCommandName = commandSet.bootstrapCommandName;
-        this.isWebCommandsSource = Utils.isWeb(commandSet.webRepo);
+        this.isWebCommandsSource = Utils.isWeb(commandSet.repoUrl);
         this.commandsSource = this.isWebCommandsSource
-                ? urlJoin(commandSet.webRepo, commandSet.dir)
+                ? urlJoin(commandSet.repoUrl, commandSet.dir)
                 : path.join(this.workingDir, commandSet.dir);
         this.createCommandFileLookup();
         this.isPubCons = !_.isNil(Config.messageBroker) &&

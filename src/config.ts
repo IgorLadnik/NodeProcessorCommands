@@ -1,13 +1,17 @@
 export class Config {
-    // PROCESSOR CONFIGURATION - MANDATORY
+
+    static isRunStandAlone = true; // false to run with RabbitMQ and SQL Server
+
+    // PROCESSOR CONFIGURATION
 
     static readonly logger = {
         filePath: 'infrastructure/logger'  // *.ts file
     };
 
+    static repoUrl: string;
+
     static readonly commandSets = [{
-        //webRepo: 'http://localhost:9000',
-        webRepo: '',
+        repoUrl: Config.repoUrl,
         dir: 'commands',
         bootstrapCommandName: 'cmdBootstrap'
     }];
@@ -17,24 +21,40 @@ export class Config {
         max: 1
     };
 
-    // Message broker (queueing) support is an optional. RabbitMQ is used as message broker in this project,
-    // but other MQs may be used in stead since Publisher and Consumer are used through their interfaces.
-    static readonly messageBroker = {
-        factoryFilePath: 'infrastructure/rabbitmqProvider',  // *.ts file
-        queueNames: ['il-01', 'il-02']
-    };
+    // COMMANDS RELATED CONFIGURATION
 
+    static httpServer: any;
+    static messageBroker: any;
+    static sqlServer: any;
 
-    // CUSTOM CONFIGURATION (for commands)
+    static createConfig() {
+        if (Config.isRunStandAlone) {
+            Config.repoUrl = '';
 
-    static readonly sqlServer = {
-        host: 'IGORMAIN\\MSSQLSERVER01',
-        databases: ['PetsDb']
-    };
+            Config.httpServer = {
+                ports: [-1, 19020]
+            };
+        }
+        else {
+            Config.repoUrl = 'http://localhost:9000';
 
-    static readonly httpServer = {
-        ports: [19019, 19020]
-    };
+            // Message broker (queueing) support is an optional. RabbitMQ is used as message broker in this project,
+            // but other MQs may be used in stead since Publisher and Consumer are used through their interfaces.
+            Config.messageBroker = {
+                factoryFilePath: 'infrastructure/rabbitmqProvider',  // *.ts file
+                queueNames: ['il-01', 'il-02']
+            };
+
+            Config.sqlServer = {
+                host: 'IGORMAIN\\MSSQLSERVER01',
+                databases: ['PetsDb']
+            };
+
+            Config.httpServer = {
+                ports: [19019, 19020]
+            };
+        }
+    }
 }
 
 
