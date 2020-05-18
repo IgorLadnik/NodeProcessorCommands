@@ -3,5 +3,13 @@ import { ILogger } from "../interfaces/ilogger";
 export function create(): ILogger { return new Logger(); }
 
 class Logger implements ILogger {
-    log = (msg: string): void => console.log(`* ${msg}`);
+    static readonly prefix = '* ';
+
+    log = async (msg: string): Promise<void> => 
+        new Promise<void>(() => 
+            setImmediate(() => 
+                //console.debug(`${Logger.prefix}${msg}`);
+                console.log(`${Logger.prefix}${msg}`)
+            )
+        );
 }

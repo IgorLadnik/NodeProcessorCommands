@@ -13,7 +13,9 @@ export async function command(args: any, p: any): Promise<boolean> {
 
         //return await p.execute(new Command('cmdRest*', httpServer));
         return await p.execute(new Command('cmdRest', httpServer),
-                               new Command('cmdRestA', httpServer));
+                               new Command('cmdRestA', httpServer),
+                               new Command('cmdRestPost', httpServer),
+                               );
     }
 
     return false;

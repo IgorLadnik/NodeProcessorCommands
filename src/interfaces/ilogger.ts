@@ -1,3 +1,3 @@
 export interface ILogger {
-    log(msg: string): void;
+    log(msg: string): Promise<void>;
 }

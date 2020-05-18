@@ -1,6 +1,6 @@
 export class Config {
 
-    static isRunStandAlone = true; // false to run with RabbitMQ and SQL Server
+    static isRunStandAlone = false; // false to run with RabbitMQ and SQL Server
 
     // PROCESSOR CONFIGURATION
 
