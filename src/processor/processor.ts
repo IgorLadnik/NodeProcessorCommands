@@ -5,14 +5,15 @@ import { Command } from '../models/command';
 import { Message } from '../models/message';
 import { IProcessor } from '../interfaces/iprocessor';
 import { ILogger } from '../interfaces/ilogger';
-import { IMessageBrokerFactory, IPublisher, IConsumer } from '../interfaces/messageInterfaces';
 import { Utils } from '../infrastructure/utils';
 import { RemoteCommandLoader } from '../infrastructure/remoteCommandLoader';
 import { CommandFunctionWrapper } from '../infrastructure/commandFunctionWrapper';
 import _ from 'lodash';
 const path = require('path');
 const fs = require('fs');
-const  urlJoin = require('url-join');
+const urlJoin = require('url-join');    ``
+const { Publisher } = require('rabbitmq-provider/publisher');
+const { Consumer }  = require('rabbitmq-provider/consumer');
 
 export class Processor implements IProcessor {
     private static readonly commandTemplateChar = '*';
@@ -20,16 +21,16 @@ export class Processor implements IProcessor {
 
     private readonly parallelCmdName = '';
     private readonly commandFunctionWrappers = new Dictionary<string, CommandFunctionWrapper>();
-    private readonly publishers = new Dictionary<string, IPublisher>();
+    private readonly publishers = new Dictionary<string, /*IPublisher*/any>();
     private readonly resources = new Dictionary<string, any>();
     private readonly commandNames = new Dictionary<string, string>();
     private readonly commandsSource: string;
     private readonly isWebCommandsSource: boolean;
     private readonly processorBootstrapCommandName: string;
 
+    private connUrl: string;
     private queueNames = new Array<string>();
     private logger: ILogger;
-    private messageBrokerFactory: IMessageBrokerFactory;
     private isPubCons = false;
     private remoteCodeLoader: RemoteCommandLoader;
 
@@ -62,7 +63,7 @@ export class Processor implements IProcessor {
 
         if (this.isPubCons) {
             try {
-                this.messageBrokerFactory = (await import(path.join(this.workingDir, Config.messageBroker.factoryFilePath))).create();
+                this.connUrl = Config.messageBroker.connUrl;
                 this.queueNames = Config.messageBroker.queueNames;
                 await Promise.all([this.startConsumers(), this.createPublishers()]);
                 this.isPubCons = true;
@@ -145,14 +146,13 @@ export class Processor implements IProcessor {
     getQueueNames = (): Array<string> => this.queueNames;
 
     async publish(queueName: string, ...commands: Array<Command>): Promise<void> {
-        if (!this.messageBrokerFactory)
+        if (!this.isPubCons)
             return;
-        await this.publishers.get(queueName).publish<Command>(queueName,
-                        this.processPossibleCommandTemplate(commands), true);
+        await this.publishers.get(queueName).publish(this.processPossibleCommandTemplate(commands));
     }
 
     async publishParallel(queueName: string, ...commands: Array<Command>): Promise<void> {
-        if (!this.messageBrokerFactory)
+        if (!this.isPubCons)
             return;
         await this.publishOne(queueName, new Command(this.parallelCmdName,
                         this.processPossibleCommandTemplate(commands)), true);
@@ -209,39 +209,64 @@ export class Processor implements IProcessor {
     }
 
     private async createPublishers(): Promise<void> {
-        if (!this.messageBrokerFactory)
+        if (!this.isPubCons)
             return;
         for (let i = 0; i < this.queueNames.length; i++)
             this.publishers.set(this.queueNames[i],
-                await this.messageBrokerFactory.startPublisher(this.queueNames[i], this.logger, true));
+                    await Publisher.createPublisher({
+                                connUrl: this.connUrl,
+                                exchange: '',
+                                queue: this.queueNames[i],
+                                exchangeType: '',
+                                durable: true,
+                                persistent: true,
+                                retryIntervalMs: 5000,
+                                maxRetries: 10
+                            },
+                            (msg: string) => this.logger.log(msg)
+                    )
+            );
     }
 
     private async startConsumers(): Promise<void> {
-        if (!this.messageBrokerFactory)
+        if (!this.isPubCons)
             return;
-        let promises = new Array<Promise<IConsumer>>();
+        let promises = new Array<Promise<any>>();
         for (let i = 0; i < this.queueNames.length; i++)
-            promises.push(this.messageBrokerFactory.startConsumer(this.queueNames[i], this.logger,
-                async (item: any) => await this.getCommandFromQueueMessageAndExecute(item)));
-                    
+            promises.push(Consumer.createConsumer({
+                    connUrl: this.connUrl,
+                    exchange: '',
+                    queue: this.queueNames[i],
+                    exchangeType: '',
+                    durable: true,
+                    noAck: true,
+                    retryIntervalMs: 5000,
+                    maxRetries: 10
+                },
+                (msg: any, jsonPayload: Array<any>) => this.getCommandFromQueueMessageAndExecute(msg, jsonPayload),
+                (msg: string) => this.logger.log(msg)
+            ));
+
         await Promise.all(promises);
     }
 
     private publishOne = async (queueName: string, command: Command, persistent: boolean): Promise<void> =>
-        await this.publishers.get(queueName).publishOne<Command>(queueName, command, persistent);
+        await this.publishers.get(queueName).publish(command);
 
-    private async getCommandFromQueueMessageAndExecute(item: any): Promise<void> {
+    private async getCommandFromQueueMessageAndExecute(item: any, jsonPayload: Array<any>): Promise<void> {
         let _ = item.fields;
-        try {
-            let message = new Message(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
-            let command: Command = JSON.parse(`${item.content}`);
-            if (command.name === this.parallelCmdName)
-                await this.executeManyInParallel(command.args, message);
-            else
-                await this.executeOne(command, message);
-        }
-        catch (err) {
-            this.logger.log(err);
+        const message = new Message(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
+        for (let i = 0; i < jsonPayload.length; i++) {
+            try {
+                let command: Command = jsonPayload[i];
+                if (command.name === this.parallelCmdName)
+                    await this.executeManyInParallel(command.args, message);
+                else
+                    await this.executeOne(command, message);
+            }
+            catch (err) {
+                this.logger.log(err);
+            }
         }
     }
 
@@ -258,7 +283,7 @@ export class Processor implements IProcessor {
         let commands = orgCommands;
         if (!this.isWebCommandsSource) {  //TEMP
             let commands = new Array<Command>();
-            for (let  i = 0; i < orgCommands.length; i++) {
+            for (let i = 0; i < orgCommands.length; i++) {
                 let command = orgCommands[i];
                 let asteriskIndex = command.name.indexOf(Processor.commandTemplateChar);
                 if (asteriskIndex > -1) {
