@@ -31,11 +31,11 @@ export async function command(args: any, p: any): Promise<boolean> {
     logger.log('after fork parallel cmdTestP 2002');
 
     if (br) {
-        br = false;
+        //br = false;
         let commandFirstFetch = new Command('cmdFirstFetch', {a: 'aaa', n: 1});
         if (!await p.execute(commandFirstFetch))
             if (await p.execute(new Command('cmdSqlConnect')))
-                br = await p.execute(commandFirstFetch);
+                /*br = */await p.execute(commandFirstFetch);
     }
 
     if (br)
