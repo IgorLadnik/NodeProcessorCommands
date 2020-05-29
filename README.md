@@ -2,16 +2,14 @@
 
 The main idea behind this project is to provide a "universal" infrastructure to a service.
 The service consists of two strictly separated parts, namely, **Processor** and **Commands**.
-The processor is responsible for service infrastructure and provides mechanism for execution of commands.
-
+The processor is responsible for service infrastructure and provides mechanism for execution of commands, diagnostics, management, etc.
 Processor is universal stable seldom changed part of a service.
-It the only purpose is to ensure execution of commands.
 
 In contrast, commands are volatile pieces of code responsible for actual service activities.
 Each command constitutes a function with uniform signature that is uploaded by a processor at runtime from either local or remote repository.
 These functions carry out various business tasks.
 Commands are very flexible.
-They can call another commands in either series or parallel way, sync- or asynchronous.
+They can call another commands in either series or parallel way, sync- or asynchronously.
 Commands in their course of actions do anything, e.g. create Web servers, access database, perform business logic.
 
 # Merits

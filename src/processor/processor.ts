@@ -66,7 +66,8 @@ export class Processor implements IProcessor {
                 this.queueNames = Config.messageBroker.queueNames;
                 await Promise.all([this.startConsumers(), this.createPublishers()]);
                 this.isPubCons = true;
-            } catch (err) {
+            } 
+            catch (err) {
             }
         }
 
