@@ -34,7 +34,7 @@ class MessageBrokerFactory implements IMessageBrokerFactory {
 }
 
 class Connection {
-    static connUrl = 'amqp://localhost';
+    static connUrl = 'amqp://guest:1237@localhost:5672';
     channel: any; 
     l: ILogger;
 
