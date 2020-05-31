@@ -11,7 +11,7 @@ export class Config {
     static repoUrl: string;
 
     static readonly commandSets = [{
-        repoUrl: Config.repoUrl,
+        repoUrl: Config.isRunStandAlone ? '' : 'http://localhost:9000',
         dir: 'commands',
         bootstrapCommandName: 'cmdBootstrap'
     }];
@@ -36,8 +36,6 @@ export class Config {
             };
         }
         else {
-            Config.repoUrl = 'http://localhost:9000';
-
             // Message broker (queueing) support is an optional. RabbitMQ is used as message broker in this project,
             // but other MQs may be used in stead since Publisher and Consumer are used through their interfaces.
             Config.messageBroker = {
