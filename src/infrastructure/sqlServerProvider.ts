@@ -19,7 +19,7 @@ export class SqlServerProvider {
             await sql.connect(this.config);
         }
         catch (err) {
-            this.l.log(err);
+            await this.l.log(err);
         }
     } 
 
@@ -34,7 +34,7 @@ export class SqlServerProvider {
             retRecordset = (await request.query(`select ${select} from ${from}${suffix}`)).recordset;     
         }
         catch (err) {
-            this.l.log(err);
+            await this.l.log(err);
         }
 
         return retRecordset;         

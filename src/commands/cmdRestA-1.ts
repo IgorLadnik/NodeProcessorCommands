@@ -7,7 +7,7 @@ export async function command(args: any, p: any): Promise<boolean> {
 
     let httpServer = args;
     if (_.isNil(httpServer)) {
-        logger.log(`Error in command \"${thisCommandName}\" http server is not available`);
+        await logger.log(`Error in command \"${thisCommandName}\" http server is not available`);
         return false;
     }
 
@@ -23,8 +23,9 @@ export async function command(args: any, p: any): Promise<boolean> {
                 try {
                     p.getResource('res').send(`Hello World! ${JSON.stringify(recordset)}`);
                     p.deleteResource('res');
-                } catch (err) {
-                    logger.log(err);
+                }
+                catch (err) {
+                    await logger.log(err);
                 }
             }
         }, 1);

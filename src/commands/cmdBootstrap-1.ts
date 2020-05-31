@@ -15,10 +15,9 @@ export async function command(args: any, p: any): Promise<boolean> {
     // const express = require('express');
     // const app = express();
 
-    let br = await p.execute(new Command('cmdCreateHttpServer', Config.httpServer.ports[0]));
+    let br0 = await p.execute(new Command('cmdCreateHttpServer', Config.httpServer.ports[0]));
 
-    if (br)
-        br = await p.execute(new Command('cmdCreateHttpOpenApiServer', Config.httpServer.ports[1]));
+    let br = await p.execute(new Command('cmdCreateHttpOpenApiServer', Config.httpServer.ports[1]));
 
     logger.log('before fork cmdTestP 1001');
     p.executeFork(1000, new Command('cmdTestP', {order: 1001}),
@@ -31,11 +30,10 @@ export async function command(args: any, p: any): Promise<boolean> {
     logger.log('after fork parallel cmdTestP 2002');
 
     if (br) {
-        //br = false;
         let commandFirstFetch = new Command('cmdFirstFetch', {a: 'aaa', n: 1});
         if (!await p.execute(commandFirstFetch))
             if (await p.execute(new Command('cmdSqlConnect')))
-                /*br = */await p.execute(commandFirstFetch);
+                await p.execute(commandFirstFetch);
     }
 
     if (br)

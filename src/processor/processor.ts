@@ -186,10 +186,10 @@ export class Processor implements IProcessor {
             if (cmdFunc)
                 br = await cmdFunc.call(command.args, this as IProcessor, message);
             else
-                this.logger.log(`Error: execution of command \"${command.name}\" has failed`);
+                await this.logger.log(`Error: execution of command \"${command.name}\" has failed`);
         }
         catch (err) {
-            this.logger.log(err);
+            await this.logger.log(err);
         }
 
         return br;

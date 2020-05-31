@@ -4,9 +4,9 @@ export async function command(args: any, p: any, message: any): Promise<boolean>
 
     const Utils = (await import(`${p.workingDir}/infrastructure/utils`)).Utils;
 
-    logger.log(`${thisCommandName}: Started. args: ${JSON.stringify(args)}`);
+    /*await*/ logger.log(`${thisCommandName}: Started. args: ${JSON.stringify(args)}`);
     let str = !message.isEmpty ? `| message: ${message}` : '';
     await Utils.delay(100, logger);
-    logger.log(`${thisCommandName}: Ended. args: ${JSON.stringify(args)} ${str}`);
+    /*await*/ logger.log(`${thisCommandName}: Ended. args: ${JSON.stringify(args)} ${str}`);
     return true;
 }

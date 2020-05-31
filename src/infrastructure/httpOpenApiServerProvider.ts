@@ -22,11 +22,11 @@ export class HttpOpenApiServerProvider {
             await this.server.listen(this.port);
         }
         catch (err) {
-            this.l.log(`Error in \"HttpOpenApiServerProvider.start()\": ${err}`);
+            await this.l.log(`Error in \"HttpOpenApiServerProvider.start()\": ${err}`);
             return false;
         }
 
-        this.l.log(`HttpOpenApiServer is listening on port ${this.port}`);
+        await this.l.log(`HttpOpenApiServer is listening on port ${this.port}`);
         return true;
     }
 }

@@ -7,9 +7,9 @@ export async function command(args: any, p: any): Promise<boolean> {
     const HttpServerProvider = (await import(`${p.workingDir}/infrastructure/httpServerProvider`)).HttpServerProvider;
 
     const port = args as number;
-    const httpServer = new HttpServerProvider(port, logger).server;
+    const httpServer = await new HttpServerProvider(port, logger).start();
     if (!_.isNil(httpServer)) {
-        logger.log(`${thisCommandName}: http server created and is listening on port = ${port}`);
+        await logger.log(`${thisCommandName}: http server created and is listening on port = ${port}`);
 
         //return await p.execute(new Command('cmdRest*', httpServer));
         return await p.execute(new Command('cmdRest', httpServer),

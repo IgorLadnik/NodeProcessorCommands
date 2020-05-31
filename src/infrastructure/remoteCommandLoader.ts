@@ -15,7 +15,7 @@ export class RemoteCommandLoader {
             fnCommand = await requireFromUrl(url).command;
         }
         catch (err) {
-            this.l.log(`Error in requireFromUrl \"${url}\": ${err}, stack: ${err.stack}`);
+            await this.l.log(`Error in requireFromUrl \"${url}\": ${err}, stack: ${err.stack}`);
             return new Function();
         }
 
@@ -26,7 +26,7 @@ export class RemoteCommandLoader {
         let url = urlJoin(this.baseUrl, remoteCodeName);
         let script = await fetch(url);
         if (!script.ok) {
-            this.l.log(`Error in fetching module from  \"${url}\"`);
+            await this.l.log(`Error in fetching module from  \"${url}\"`);
             return new Function();
         }
 
@@ -36,7 +36,7 @@ export class RemoteCommandLoader {
             m._compile(await script.text(), '');
         }
         catch (err) {
-            this.l.log(`Error in compiling module fetched from \"${url}\": ${err}, stack: ${err.stack}`);
+            await this.l.log(`Error in compiling module fetched from \"${url}\": ${err}, stack: ${err.stack}`);
         }
 
         return m.exports.command;

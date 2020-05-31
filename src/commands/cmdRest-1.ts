@@ -20,8 +20,9 @@ export async function command(args: any, p: any): Promise<boolean> {
             p.deleteResource('recordset');
             try {
                 res.send(`Hello World! ${JSON.stringify(recordset)}`);
-            } catch (err) {
-                logger.log(err);
+            }
+            catch (err) {
+                await logger.log(err);
             }
         }
     });

@@ -11,7 +11,7 @@ export async function command(args: any, p: any, message: any): Promise<boolean>
     const thisCommandName = 'cmdTemplate'; // Replace with actual command name
     let logger = p.getLogger();
 
-    logger.log(`Command ${thisCommandName} started  args: ${JSON.stringify(args)} ${!message.isEmpty ? `, message: ${message}` : ''}`);
+    /*await*/ logger.log(`Command ${thisCommandName} started  args: ${JSON.stringify(args)} ${!message.isEmpty ? `, message: ${message}` : ''}`);
     
     // Currently available local dependencies. Please remove not used.
     const _ = await import(`${p.stdImportDir}/lodash`);
@@ -24,7 +24,7 @@ export async function command(args: any, p: any, message: any): Promise<boolean>
     
     // Provide business logic here
 
-    logger.log(`Command ${thisCommandName} ended`);
+    /*await*/ logger.log(`Command ${thisCommandName} ended`);
     
     return true;
 }

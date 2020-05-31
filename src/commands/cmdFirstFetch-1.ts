@@ -13,7 +13,7 @@ export async function command(args: any, p: any, message: any): Promise<boolean>
         recordset = await sql.simpleQuery('*', dbTable);
     }
     catch (err) {
-        logger.log(`Error in command \"${thisCommandName}\": failed to execute query to table \"${dbTable}\"`);
+        await logger.log(`Error in command \"${thisCommandName}\": failed to execute query to table \"${dbTable}\"`);
         return false;
     }
 

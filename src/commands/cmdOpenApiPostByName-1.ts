@@ -42,9 +42,9 @@ export async function command(args: any, p: any): Promise<boolean> {
         }
     };
 
-    httpOpenApiServerProvider.server.post(`${dir}`, (req: any, res: any) => {
+    httpOpenApiServerProvider.server.post(`${dir}`, async (req: any, res: any) => {
         res.json({id: 139, name: req.query.name});
-        logger.log(`${thisCommandName}:`);
+        await logger.log(`${thisCommandName}:`);
     });
 
     return true;

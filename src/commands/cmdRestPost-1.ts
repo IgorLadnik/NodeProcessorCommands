@@ -8,11 +8,11 @@ export async function command(args: any, p: any): Promise<boolean> {
 
     let httpServer = args;
     if (_.isNil(httpServer)) {
-        logger.log(`Error in command \"${thisCommandName}\" http server is not available`);
+        await logger.log(`Error in command \"${thisCommandName}\" http server is not available`);
         return false;
     }
 
-    logger.log(`Command \"${thisCommandName}\" http POST on root created`);
+    await logger.log(`Command \"${thisCommandName}\" http POST on root created`);
     httpServer.post('/p', (req: any, res: any) => {
         const str = req.body;
         const queryName = req.query.name;

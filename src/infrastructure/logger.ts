@@ -6,10 +6,11 @@ class Logger implements ILogger {
     static readonly prefix = '* ';
 
     log = async (msg: string): Promise<void> => 
-        new Promise<void>(() => 
-            setImmediate(() => 
+        new Promise<void>(resolve =>
+            setImmediate(() => {
+                resolve();
                 //console.debug(`${Logger.prefix}${msg}`);
-                console.log(`${Logger.prefix}${msg}`)
-            )
+                console.log(`${Logger.prefix}${msg}`);
+            })
         );
 }
