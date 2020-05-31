@@ -21,7 +21,7 @@ export async function command(args: any, p: any): Promise<boolean> {
 
     logger.log('before fork cmdTestP 1001');
     p.executeFork(1000, new Command('cmdTestP', {order: 1001}),
-                                  new Command('cmdTestP', {order: 1002}));
+                        new Command('cmdTestP', {order: 1002}));
     logger.log('after fork cmdTestP 1001');
 
     logger.log('before fork parallel cmdTestP 2001');
@@ -62,6 +62,10 @@ export async function command(args: any, p: any): Promise<boolean> {
                     new Command('cmdTestP', {order: 3})),
             1370);
     }
+
+    setInterval(async () =>
+        await p.execute(new Command('cmdHttpClientSample')),
+        5000);
 
     return br;
 }
