@@ -3,7 +3,7 @@
 Currently, the most of server-side applications are developed using either **monolithic** or **micro-service** architecture.
 Each of them has its well-known pros and cons.  
 This work is an attempt to suggest an architecture that combines good points of both approaches and mitigates their weak points.
-I fully realize that this is not a "golden bullet" that will solve all complex architectural issues of servers.
+I fully realize that this is not a "magic bullet" that will solve all complex architectural issues of servers.
 But IMHO this approach, illustrated with code, at least deserves to be discussed.  
 
 # Concept
