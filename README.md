@@ -1,3 +1,11 @@
+# Intro
+
+Currently, the most of server-side applications are developed using either **monolithic** or **micro-service** architecture.
+Each of them has its well-known pros and cons.  
+This work is an attempt to suggest an architecture that combines good points of both approaches and mitigates their weak points.
+I fully realize that this is not a "golden bullet" that will solve all complex architectural issues of servers.
+But IMHO this approach, illustrated with code, at least deserves to be discussed.  
+
 # Concept
 
 The main idea behind this project is to provide a "universal" infrastructure to a service.
@@ -7,7 +15,7 @@ Its simplified design is depicted below.
 ![Processor-Commands Schema](/images/Processor-Commands%20Schema.png)
 
 The processor is responsible for service infrastructure and provides mechanism for execution of commands, diagnostics, management, etc.
-Processor is universal stable seldom changed part of a service.
+Processor is a universal stable seldom changed part of a service.
 
 In contrast, commands are volatile pieces of code responsible for actual service activities.
 Each command constitutes a function with uniform signature that is uploaded by a processor at runtime from either local or remote repository.
