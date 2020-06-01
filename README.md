@@ -2,6 +2,9 @@
 
 The main idea behind this project is to provide a "universal" infrastructure to a service.
 The service consists of two strictly separated parts, namely, **Processor** and **Commands**.
+
+![Alt text](./images/Processor-Commands Schema.png?raw=true "Processor-Commands Schema")
+
 The processor is responsible for service infrastructure and provides mechanism for execution of commands, diagnostics, management, etc.
 Processor is universal stable seldom changed part of a service.
 
