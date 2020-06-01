@@ -2,6 +2,7 @@
 
 The main idea behind this project is to provide a "universal" infrastructure to a service.
 The service consists of two strictly separated parts, namely, **Processor** and **Commands**.
+Its simplified design is depicted below.
 
 ![Processor-Commands Schema](/images/Processor-Commands%20Schema.png)
 
