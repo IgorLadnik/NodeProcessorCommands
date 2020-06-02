@@ -217,11 +217,11 @@ export class Processor implements IProcessor {
                                 connUrl: this.connUrl,
                                 exchange: '',
                                 queue: this.queueNames[i],
-                                exchangeType: '',
-                                durable: true,
-                                persistent: true,
-                                retryIntervalMs: 5000,
-                                maxRetries: 10
+                                exchangeType: ''//,
+                                // durable: true,
+                                // persistent: true,
+                                // retryIntervalMs: 5000,
+                                // maxRetries: 10
                             },
                             (msg: string) => this.logger.log(msg)
                     )
@@ -237,11 +237,11 @@ export class Processor implements IProcessor {
                     connUrl: this.connUrl,
                     exchange: '',
                     queue: this.queueNames[i],
-                    exchangeType: '',
-                    durable: true,
-                    noAck: true,
-                    retryIntervalMs: 5000,
-                    maxRetries: 10
+                    exchangeType: ''//,
+                    // durable: true,
+                    // noAck: true,
+                    // retryIntervalMs: 5000,
+                    // maxRetries: 10
                 },
                 (msg: any, jsonPayload: Array<any>) => this.getCommandFromQueueMessageAndExecute(msg, jsonPayload),
                 (msg: string) => this.logger.log(msg)
