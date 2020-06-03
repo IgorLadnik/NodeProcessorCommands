@@ -60,7 +60,7 @@ This can be achieved with object <i>p</i> of IProcessor interface available as a
 
     const Command = require(`${p.workingDir}/models/command`).Command;
 
-# Limitations
+# Limitations of Code Sample
 
 Please note that some commands in <i>master</i> branch 
 - deal with local resources (SQL Server and RabbitMQ) not available here, and<br/>
