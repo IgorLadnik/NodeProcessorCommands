@@ -29,11 +29,12 @@ Commands in their course of actions do anything, e.g. create Web servers, access
 Such an approach to service implementation has several important merits:<br/>
 - the most complex part of service software (which is a processor) is universal and seldom changed, which reduces developers efforts and amount of required testing,<br/>
 - service is very flexible allowing implementation of different configurations by selecting appropriate set of commands,<br/>
-- due to flexibility of commands they may be used for a wide range of products with the same processor,
+- the same processor may be used with different sets of commands,
 - ensures better performance for commands chain execution since all commands may run locally in one process without network communication with other services,<br/>
 - possibility to change commands (and therefore service behavior) "on the fly" without service redeployment and even restart,<br/>
 - easy scaling since all services (processors) are the same,<br/>
 - allows service to easily support different versions of commands for different clients,<br/>
+- possibility to have a set of classic micro-services (if required) using individual set of commands for each service with the same processor,<br/>
 - from organizational perspective, it is easy to develop fine granulated commands without bothering of infrastructure issues, especially for new developers.<br/>
 
 # Notes
@@ -59,7 +60,7 @@ This can be achieved with object <i>p</i> of IProcessor interface available as a
 
     const Command = require(`${p.workingDir}/models/command`).Command;
 
-# Limitations
+# Limitations of Code Sample
 
 Please note that some commands in <i>master</i> branch 
 - deal with local resources (SQL Server and RabbitMQ) not available here, and<br/>
