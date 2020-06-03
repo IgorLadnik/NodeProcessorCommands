@@ -29,7 +29,7 @@ Commands in their course of actions do anything, e.g. create Web servers, access
 Such an approach to service implementation has several important merits:<br/>
 - the most complex part of service software (which is a processor) is universal and seldom changed, which reduces developers efforts and amount of required testing,<br/>
 - service is very flexible allowing implementation of different configurations by selecting appropriate set of commands,<br/>
-- due to flexibility of commands they may be used for a wide range of products with the same processor,
+- the same processor may be used with different sets of commands,
 - ensures better performance for commands chain execution since all commands may run locally in one process without network communication with other services,<br/>
 - possibility to change commands (and therefore service behavior) "on the fly" without service redeployment and even restart,<br/>
 - easy scaling since all services (processors) are the same,<br/>
