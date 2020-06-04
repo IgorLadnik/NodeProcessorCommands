@@ -37,6 +37,13 @@ Such an approach to service implementation has several important merits:<br/>
 - possibility to have a set of classic micro-services (if required) using individual set of commands for each service with the same processor,<br/>
 - from organizational perspective, it is easy to develop fine granulated commands without bothering of infrastructure issues, especially for new developers.<br/>
 
+# Limitations
+
+- a single machine should be powerful enough to accommodate and run the whole set of command,<br/>
+- since all commands are executed in context of processor's process, they should be compatable with the processor (normally written in the same language).<br/>
+
+Usually the above limitations are quite acceptable.
+
 # Notes
 
 After a download the following programs should be called from command line in order to run service:<br/>
