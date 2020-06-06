@@ -140,7 +140,7 @@ export class Processor implements IProcessor {
         setTimeout(async () => await this.executeParallel(...commands), delayInMs);
 
 
-    // Publish methods
+    // Message broker related methods
 
     isMessageBrokerSupported = (): boolean => this.isPubCons;
 
@@ -149,12 +149,14 @@ export class Processor implements IProcessor {
     async publish(queueName: string, ...commands: Array<Command>): Promise<void> {
         if (!this.isPubCons)
             return;
+
         await this.publishers.get(queueName).publish(this.processPossibleCommandTemplate(commands));
     }
 
     async publishParallel(queueName: string, ...commands: Array<Command>): Promise<void> {
         if (!this.isPubCons)
             return;
+
         await this.publishOne(queueName, new Command(this.parallelCmdName,
                         this.processPossibleCommandTemplate(commands)), true);
     }
@@ -209,43 +211,35 @@ export class Processor implements IProcessor {
         return br;
     }
 
+    private getOptions(i: number): any {
+        return {
+            connUrl: this.connUrl,
+            exchangeType: '',
+            exchange: '',
+            queue: this.queueNames[i],
+            noAck: true
+            // durable: true,
+            // retryIntervalMs: 5000,
+            // maxRetries: 10
+        }
+    }
+
     private async createPublishers(): Promise<void> {
         if (!this.isPubCons)
             return;
+
         for (let i = 0; i < this.queueNames.length; i++)
-            this.publishers.set(this.queueNames[i],
-                    await Publisher.createPublisher({
-                                connUrl: this.connUrl,
-                                exchange: '',
-                                queue: this.queueNames[i],
-                                exchangeType: ''//,
-                                // durable: true,
-                                // persistent: true,
-                                // retryIntervalMs: 5000,
-                                // maxRetries: 10
-                            },
-                            (msg: string) => this.logger.log(msg)
-                    )
-            );
+            this.publishers.set(this.queueNames[i], await Publisher.createPublisher(this.getOptions(i), this.logger));
     }
 
     private async startConsumers(): Promise<void> {
         if (!this.isPubCons)
             return;
+
         let promises = new Array<Promise<any>>();
         for (let i = 0; i < this.queueNames.length; i++)
-            promises.push(Consumer.createConsumer({
-                    connUrl: this.connUrl,
-                    exchange: '',
-                    queue: this.queueNames[i],
-                    exchangeType: ''//,
-                    // durable: true,
-                    // noAck: true,
-                    // retryIntervalMs: 5000,
-                    // maxRetries: 10
-                },
-                (msg: any, jsonPayload: Array<any>) => this.getCommandFromQueueMessageAndExecute(msg, jsonPayload),
-                (msg: string) => this.logger.log(msg)
+            promises.push(Consumer.createConsumer(this.getOptions(i), this.logger,
+                (consumer: any, msg: any) => this.getCommandFromQueueMessageAndExecute(msg)
             ));
 
         await Promise.all(promises);
@@ -254,8 +248,9 @@ export class Processor implements IProcessor {
     private publishOne = async (queueName: string, command: Command, persistent: boolean): Promise<void> =>
         await this.publishers.get(queueName).publish(command);
 
-    private async getCommandFromQueueMessageAndExecute(item: any, jsonPayload: Array<any>): Promise<void> {
+    private async getCommandFromQueueMessageAndExecute(item: any): Promise<void> {
         let _ = item.fields;
+        const jsonPayload = Consumer.getPayloads(item);
         const message = new Message(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
         for (let i = 0; i < jsonPayload.length; i++) {
             try {
@@ -270,6 +265,7 @@ export class Processor implements IProcessor {
             }
         }
     }
+
 
     private createCommandFileLookup = () => {
         if (!this.isWebCommandsSource)
