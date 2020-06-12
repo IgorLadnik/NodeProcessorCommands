@@ -1,5 +1,5 @@
 /*
-This template to crete new commands.
+This template to create new commands.
 
 In the command signature:
     args: any      - command's arguments provided by calller.
