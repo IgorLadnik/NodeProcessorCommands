@@ -1,6 +1,3 @@
-import { RemoteCommandLoader } from "../infrastructure/remoteCommandLoader";
-import * as child_process from 'child_process';
-
 export async function command(args: any, p: any): Promise<boolean> {
     const thisCommandName = 'cmdBootstrap';
     let logger = p.getLogger();
@@ -10,6 +7,8 @@ export async function command(args: any, p: any): Promise<boolean> {
     //const Config = (await import(`${p.workingDir}/config`)).Config;
     const Command = require(`${p.workingDir}/models/command`).Command;
     const Config = require(`${p.workingDir}/config`).Config;
+    const _ = await import(`${p.stdImportDir}/lodash`);
+    const Publisher = (await import(`${p.stdImportDir}/rabbitmq-provider/publisher`)).Publisher;
 
     // let buffer = child_process.execSync('npm install express');
     // const express = require('express');
@@ -48,20 +47,9 @@ export async function command(args: any, p: any): Promise<boolean> {
             new Command('cmdTestP', {order: 2}),
             new Command('cmdTestP', {order: 3}));
 
-    if (br && p.isMessageBrokerSupported()) {
-        setInterval(async () =>
-                await p.publish(p.getQueueNames()[0],
-                    new Command('cmdFirstFetch', {a: 'aaa', n: 1}),
-                    new Command('cmdFirstFetch', {a: 'qqq', n: 1})),
-            3000);
-
-        setInterval(async () =>
-                await p.publishParallel(p.getQueueNames()[0],
-                    new Command('cmdTestP', {order: 1}),
-                    new Command('cmdTestP', {order: 2}),
-                    new Command('cmdTestP', {order: 3})),
-            1370);
-    }
+     if (br && !_.isNil(Config.messageBroker))
+         if (br = await p.execute(new Command('cmdRabbitMQConsumer')))
+             br = await p.execute(new Command('cmdRabbitMQPublisher'));
 
     setInterval(async () =>
         await p.execute(new Command('cmdHttpClientSample')),

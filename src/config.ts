@@ -39,9 +39,12 @@ export class Config {
             // Message broker (queueing) support is an optional. RabbitMQ is used as message broker in this project,
             // but other MQs may be used in stead since Publisher and Consumer are used through their interfaces.
             Config.messageBroker = {
-                connUrl: 'amqp://guest:1237@localhost:5672',
-                factoryFilePath: 'infrastructure/rabbitmqProvider',  // *.ts file
-                queueNames: ['il-01', 'il-02']
+                //connUrl: 'amqp://guest:1237@localhost:5672', //`amqp://${user}${password}${host}:${port}`,
+                host: 'localhost',
+                port: 5672,
+                user: 'guest',
+                password: '1237',
+                queue: 'test-queue'
             };
 
             Config.sqlServer = {

@@ -12,14 +12,12 @@ import _ from 'lodash';
 const path = require('path');
 const fs = require('fs');
 const urlJoin = require('url-join');    ``
-const { Publisher } = require('rabbitmq-provider/publisher');
-const { Consumer }  = require('rabbitmq-provider/consumer');
+const { Consumer }  = require('rabbitmq-provider/consumer'); //TEMP
 
 export class Processor implements IProcessor {
     private static readonly commandTemplateChar = '*';
     private static readonly defaultMessage = new Message();
 
-    private readonly parallelCmdName = '';
     private readonly commandFunctionWrappers = new Dictionary<string, CommandFunctionWrapper>();
     private readonly publishers = new Dictionary<string, /*IPublisher*/any>();
     private readonly resources = new Dictionary<string, any>();
@@ -28,10 +26,7 @@ export class Processor implements IProcessor {
     private readonly isWebCommandsSource: boolean;
     private readonly processorBootstrapCommandName: string;
 
-    private connUrl: string;
-    private queueNames = new Array<string>();
     private logger: ILogger;
-    private isPubCons = false;
     private remoteCodeLoader: RemoteCommandLoader;
 
     constructor(commandSetNum: number = 0) {
@@ -47,10 +42,6 @@ export class Processor implements IProcessor {
                 ? urlJoin(commandSet.repoUrl, commandSet.dir)
                 : path.join(this.workingDir, commandSet.dir);
         this.createCommandFileLookup();
-        this.isPubCons = !_.isNil(Config.messageBroker) &&
-                         Utils.isNotEmptyString(Config.messageBroker.factoryFilePath) &&
-                         !_.isNil(Config.messageBroker.queueNames) &&
-                         Config.messageBroker.queueNames.length > 0;
     }
 
     async init(): Promise<Processor> {
@@ -61,21 +52,7 @@ export class Processor implements IProcessor {
         if (this.isWebCommandsSource)
             this.remoteCodeLoader = new RemoteCommandLoader(this.commandsSource, this.logger);
 
-        if (this.isPubCons) {
-            try {
-                this.connUrl = Config.messageBroker.connUrl;
-                this.queueNames = Config.messageBroker.queueNames;
-                await Promise.all([this.startConsumers(), this.createPublishers()]);
-
-            }
-            catch (err) {
-                this.isPubCons = false;
-            }
-        }
-
         this.logger.log(`${this.isWebCommandsSource ? 'Web' : 'Local'} command repository is used`);
-
-        this.logger.log(`Message broker is ${this.isPubCons ? '' : 'NOT '}supported`);
         this.logger.log(`Processor \"${this.id}\" initialized and runs its bootstrap command \"${this.processorBootstrapCommandName}\"`);
 
         let msgPrefix = `Bootstrap command \"${this.processorBootstrapCommandName}\"`;
@@ -95,6 +72,7 @@ export class Processor implements IProcessor {
     public readonly id: string;
     public readonly workingDir: string;
     public readonly stdImportDir: string;
+    public readonly parallelCmdName = '';
 
     getLogger = (): ILogger => this.logger;
 
@@ -139,26 +117,22 @@ export class Processor implements IProcessor {
     executeForkParallel = (delayInMs: number, ...commands: Array<Command>) =>
         setTimeout(async () => await this.executeParallel(...commands), delayInMs);
 
-
-    // Message broker related methods
-
-    isMessageBrokerSupported = (): boolean => this.isPubCons;
-
-    getQueueNames = (): Array<string> => this.queueNames;
-
-    async publish(queueName: string, ...commands: Array<Command>): Promise<void> {
-        if (!this.isPubCons)
-            return;
-
-        await this.publishers.get(queueName).publish(this.processPossibleCommandTemplate(commands));
-    }
-
-    async publishParallel(queueName: string, ...commands: Array<Command>): Promise<void> {
-        if (!this.isPubCons)
-            return;
-
-        await this.publishOne(queueName, new Command(this.parallelCmdName,
-                        this.processPossibleCommandTemplate(commands)), true);
+    async getCommandFromQueueMessageAndExecute(item: any): Promise<void> { //TEMP
+        let _ = item.fields;
+        const jsonPayload = Consumer.getPayloads(item);
+        const message = new Message(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
+        for (let i = 0; i < jsonPayload.length; i++) {
+            try {
+                let command: Command = jsonPayload[i];
+                if (command.name === this.parallelCmdName)
+                    await this.executeManyInParallel(command.args, message);
+                else
+                    await this.executeOne(command, message);
+            }
+            catch (err) {
+                this.logger.log(err);
+            }
+        }
     }
 
     // Private methods
@@ -169,6 +143,9 @@ export class Processor implements IProcessor {
             let cmdFunc: CommandFunctionWrapper = this.commandFunctionWrappers.get(command.name);
             if (!cmdFunc) {
                 let fnCommand;
+
+                if (!Utils.isNotEmptyString(command.name))
+                    return false;
 
                 if (this.isWebCommandsSource)
                     // Remote commands
@@ -210,62 +187,6 @@ export class Processor implements IProcessor {
 
         return br;
     }
-
-    private getOptions(i: number): any {
-        return {
-            connUrl: this.connUrl,
-            exchangeType: '',
-            exchange: '',
-            queue: this.queueNames[i],
-            noAck: true
-            // durable: true,
-            // retryIntervalMs: 5000,
-            // maxRetries: 10
-        }
-    }
-
-    private async createPublishers(): Promise<void> {
-        if (!this.isPubCons)
-            return;
-
-        for (let i = 0; i < this.queueNames.length; i++)
-            this.publishers.set(this.queueNames[i], await Publisher.createPublisher(this.getOptions(i), this.logger));
-    }
-
-    private async startConsumers(): Promise<void> {
-        if (!this.isPubCons)
-            return;
-
-        let promises = new Array<Promise<any>>();
-        for (let i = 0; i < this.queueNames.length; i++)
-            promises.push(Consumer.createConsumer(this.getOptions(i), this.logger,
-                (consumer: any, msg: any) => this.getCommandFromQueueMessageAndExecute(msg)
-            ));
-
-        await Promise.all(promises);
-    }
-
-    private publishOne = async (queueName: string, command: Command, persistent: boolean): Promise<void> =>
-        await this.publishers.get(queueName).publish(command);
-
-    private async getCommandFromQueueMessageAndExecute(item: any): Promise<void> {
-        let _ = item.fields;
-        const jsonPayload = Consumer.getPayloads(item);
-        const message = new Message(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
-        for (let i = 0; i < jsonPayload.length; i++) {
-            try {
-                let command: Command = jsonPayload[i];
-                if (command.name === this.parallelCmdName)
-                    await this.executeManyInParallel(command.args, message);
-                else
-                    await this.executeOne(command, message);
-            }
-            catch (err) {
-                this.logger.log(err);
-            }
-        }
-    }
-
 
     private createCommandFileLookup = () => {
         if (!this.isWebCommandsSource)
@@ -310,8 +231,8 @@ export class Processor implements IProcessor {
         return { name, version, ext, extMap };
     }
 
-    private static checkOnVersion = (_: any): boolean =>
-        Config.versions.min <= _.version && _.version <= Config.versions.max
-        && _.ext.toLowerCase() === 'js' && _.extMap === '';
+    private static checkOnVersion = (obj: any): boolean =>
+        Config.versions.min <= obj.version && obj.version <= Config.versions.max
+        && obj.ext.toLowerCase() === 'js' && obj.extMap === '';
 }
 
