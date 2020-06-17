@@ -1,5 +1,7 @@
-export async function command(args: any, p: any, message: any): Promise<boolean> {
-    const thisCommandName = 'cmdRabbitMQConsumer';
+import { IProcessor } from '../interfaces/iprocessor';
+
+export async function command(args: any, p: IProcessor, message: any): Promise<boolean> {
+    const thisCommandName = 'cmdRabbitMQCommandConsumer';
     let logger = p.getLogger();
 
     /*await*/ logger.log(`Command ${thisCommandName} started  args: ${JSON.stringify(args)} ${!message.isEmpty ? `, message: ${message}` : ''}`);

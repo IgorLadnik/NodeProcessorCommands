@@ -1,4 +1,6 @@
-export async function command(args: any, p: any, message: any): Promise<boolean> {
+import { IProcessor } from '../interfaces/iprocessor';
+
+export async function command(args: any, p: IProcessor, message: any): Promise<boolean> {
     const thisCommandName = 'cmdGetSample';
     let logger = p.getLogger();
 

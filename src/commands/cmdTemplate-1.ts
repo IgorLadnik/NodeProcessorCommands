@@ -1,13 +1,16 @@
 /*
-This template to create new commands.
+This template to create a new command.
 
-In the command signature:
-    args: any      - command's arguments provided by calller.
-    p: any         - processor. Its actual type is IProcessor.
-    message: any   - contains info of message if command was creted on some message erceived (from message queue or other sources)
-                     Usually is not used.
+Arguments:
+    args    :any         - command's arguments provided by caller.
+    p       :IProcessor  - processor. Its actual type is IProcessor.
+    message :any         - contains info of message if command was created on some message received
+                           from message queue or other sources. Usually is not used.
 */
-export async function command(args: any, p: any, message: any): Promise<boolean> {
+
+import { IProcessor } from '../interfaces/iprocessor';
+
+export async function command(args: any, p: IProcessor, message: any): Promise<boolean> {
     const thisCommandName = 'cmdTemplate'; // Replace with actual command name
     let logger = p.getLogger();
 

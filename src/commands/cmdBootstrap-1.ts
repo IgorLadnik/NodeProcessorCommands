@@ -1,4 +1,6 @@
-export async function command(args: any, p: any): Promise<boolean> {
+import { IProcessor } from '../interfaces/iprocessor';
+
+export async function command(args: any, p: IProcessor): Promise<boolean> {
     const thisCommandName = 'cmdBootstrap';
     let logger = p.getLogger();
     logger.log(thisCommandName);
@@ -8,7 +10,6 @@ export async function command(args: any, p: any): Promise<boolean> {
     const Command = require(`${p.workingDir}/models/command`).Command;
     const Config = require(`${p.workingDir}/config`).Config;
     const _ = await import(`${p.stdImportDir}/lodash`);
-    const Publisher = (await import(`${p.stdImportDir}/rabbitmq-provider/publisher`)).Publisher;
 
     // let buffer = child_process.execSync('npm install express');
     // const express = require('express');
@@ -48,8 +49,8 @@ export async function command(args: any, p: any): Promise<boolean> {
             new Command('cmdTestP', {order: 3}));
 
      if (br && !_.isNil(Config.messageBroker))
-         if (br = await p.execute(new Command('cmdRabbitMQConsumer')))
-             br = await p.execute(new Command('cmdRabbitMQPublisher'));
+         if (br = await p.execute(new Command('cmdRabbitMQCommandConsumer')))
+             br = await p.execute(new Command('cmdRabbitMQCommandPublisher'));
 
     setInterval(async () =>
         await p.execute(new Command('cmdHttpClientSample')),

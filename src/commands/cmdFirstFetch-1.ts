@@ -1,4 +1,6 @@
-export async function command(args: any, p: any, message: any): Promise<boolean> {
+import { IProcessor } from '../interfaces/iprocessor';
+
+export async function command(args: any, p: IProcessor, message: any): Promise<boolean> {
     const thisCommandName = 'cmdFirstFetch';
     let logger = p.getLogger();
 
@@ -18,7 +20,7 @@ export async function command(args: any, p: any, message: any): Promise<boolean>
     }
 
     p.setResource('recordset', recordset);
-    let str = !message.isEmpty ? `| message: ${message}` : '';
+    let str = !message.isEmpty ? `| message: ${JSON.stringify(args)}` : '';
     logger.log(`${thisCommandName}: args: ${JSON.stringify(args)} ${str}`);
 
     return true;

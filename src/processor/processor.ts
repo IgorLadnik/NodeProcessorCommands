@@ -19,7 +19,6 @@ export class Processor implements IProcessor {
     private static readonly defaultMessage = new Message();
 
     private readonly commandFunctionWrappers = new Dictionary<string, CommandFunctionWrapper>();
-    private readonly publishers = new Dictionary<string, /*IPublisher*/any>();
     private readonly resources = new Dictionary<string, any>();
     private readonly commandNames = new Dictionary<string, string>();
     private readonly commandsSource: string;
@@ -117,17 +116,16 @@ export class Processor implements IProcessor {
     executeForkParallel = (delayInMs: number, ...commands: Array<Command>) =>
         setTimeout(async () => await this.executeParallel(...commands), delayInMs);
 
-    async getCommandFromQueueMessageAndExecute(item: any): Promise<void> { //TEMP
+    async getCommandFromQueueMessageAndExecute(item: any): Promise<void> {
         let _ = item.fields;
-        const jsonPayload = Consumer.getPayloads(item);
-        const message = new Message(_.exchange, _.routingKey, _.consumerTag, _.deliveryTag, _.redelivered);
-        for (let i = 0; i < jsonPayload.length; i++) {
+        const jsonPayloads = Consumer.getPayloads(item);
+        for (let i = 0; i < jsonPayloads.length; i++) {
             try {
-                let command: Command = jsonPayload[i];
+                let command: Command = jsonPayloads[i];
                 if (command.name === this.parallelCmdName)
-                    await this.executeManyInParallel(command.args, message);
+                    await this.executeManyInParallel(command.args, item.fields);
                 else
-                    await this.executeOne(command, message);
+                    await this.executeOne(command, item.fields);
             }
             catch (err) {
                 this.logger.log(err);

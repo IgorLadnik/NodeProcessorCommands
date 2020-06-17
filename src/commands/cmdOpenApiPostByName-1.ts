@@ -1,4 +1,6 @@
-export async function command(args: any, p: any): Promise<boolean> {
+import { IProcessor } from '../interfaces/iprocessor';
+
+export async function command(args: any, p: IProcessor): Promise<boolean> {
     const thisCommandName = 'cmdOpenApiPostByName';
     let logger = p.getLogger();
     let httpOpenApiServerProvider = args;
