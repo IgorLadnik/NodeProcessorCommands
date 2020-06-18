@@ -1,6 +1,4 @@
-import { IProcessor } from '../interfaces/iprocessor';
-
-export async function command(args: any, p: IProcessor, message: any): Promise<boolean> {
+export async function command(args: any, p: any, message: any): Promise<boolean> {
     const thisCommandName = 'cmdFirstFetch';
     let logger = p.getLogger();
 

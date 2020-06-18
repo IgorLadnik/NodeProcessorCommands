@@ -1,6 +1,4 @@
-import { IProcessor } from '../interfaces/iprocessor';
-
-export async function command(args: any, p: IProcessor): Promise<boolean> {
+export async function command(args: any, p: any): Promise<boolean> {
     const thisCommandName = 'cmdSqlConnect';
     let logger = p.getLogger();
     /*await*/ logger.log(`cmdSqlConnect: args: ${JSON.stringify(args)}`);

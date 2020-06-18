@@ -12,7 +12,7 @@ import _ from 'lodash';
 const path = require('path');
 const fs = require('fs');
 const urlJoin = require('url-join');    ``
-const { Consumer }  = require('rabbitmq-provider/consumer'); //TEMP
+const { Consumer } = require('rabbitmq-provider/consumer'); //TEMP
 
 export class Processor implements IProcessor {
     private static readonly commandTemplateChar = '*';
