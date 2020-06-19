@@ -14,15 +14,15 @@ export async function command(args: any, p: any, message: any): Promise<boolean>
 
     setInterval(async () =>
             await publisher.publishAsync(
-                new Command('cmdFirstFetch', {a: 'aaa', n: 1}),
-                new Command('cmdFirstFetch', {a: 'qqq', n: 1})),
+                new Command('cmdFirstFetch', {a: 'aaa', n: 11}),
+                new Command('cmdFirstFetch', {a: 'qqq', n: 11})),
         3000);
 
     setInterval(async () =>
             await publisher.publishAsync(
-                new Command('cmdTestP', {order: 1}),
-                new Command('cmdTestP', {order: 2}),
-                new Command('cmdTestP', {order: 3})),
+                new Command('cmdTestP', {order: 11}),
+                new Command('cmdTestP', {order: 22}),
+                new Command('cmdTestP', {order: 33})),
         1370);
 
     /*await*/ logger.log(`Command ${thisCommandName} ended`);
