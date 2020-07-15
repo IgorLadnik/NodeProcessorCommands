@@ -1,42 +1,37 @@
-const sql = require('mssql/msnodesqlv8');
+import _ from 'lodash';
+import { SqlClient } from 'msnodesqlv8';
 import { ILogger } from "../interfaces/ilogger";
 
 export class SqlServerProvider {
+    sql: SqlClient;
+    connectionString: string;
+
     constructor(private readonly config: any, private l: ILogger) {
         this.l = l;
-        this.config = {
-            server: config.server, 
-            database: config.database,
-
-            options: {
-                trustedConnection: true
-            }
-        }
+        this.sql = require('msnodesqlv8');
+        this.connectionString = `Server=${config.server};` +
+                                `Database=${config.database};` +
+                                `Trusted_Connection=Yes;` +
+                                'Driver={SQL Server Native Client 11.0}';
     }
 
-    async connect() {
-        try {
-            await sql.connect(this.config);
-        }
-        catch (err) {
-            await this.l.log(err);
-        }
-    } 
-
-    async simpleQuery(select: string, from: string, where: string): Promise<Array<any>> {
+    simpleQuery(select: string, from: string, where: string): Promise<Array<any>> {
         let suffix: string = '';
         if (where && where.length > 0)
             suffix = ` where ${where}`;
 
-        let request = new sql.Request(); 
-        let retRecordset = new Array<any>();         
-        try {
-            retRecordset = (await request.query(`select ${select} from ${from}${suffix}`)).recordset;     
-        }
-        catch (err) {
-            await this.l.log(err);
-        }
+        let retRows = new Array<any>();
+        return new Promise<Array<any>>((resolve: any) => {
+            this.sql.query(this.connectionString, `select ${select} from ${from}${suffix}`,
+                async (err, rows) => {
+                    if (!_.isNil(err))
+                        await this.l.log(`${err}`);
 
-        return retRecordset;         
+                    if (!_.isNil(rows))
+                        retRows = rows;
+
+                    resolve(retRows);
+                });
+        });
     }
 }

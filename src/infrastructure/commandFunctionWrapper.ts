@@ -7,7 +7,7 @@ export class CommandFunctionWrapper {
         try {
             return await this.fn(...args);
         }
-        catch (err){
+        catch (err) {
             await this.l.log(`Error in command function execution: ${err}`);
             return false;
         }

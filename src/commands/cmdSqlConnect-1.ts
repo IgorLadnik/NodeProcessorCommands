@@ -16,7 +16,7 @@ export async function command(args: any, p: any): Promise<boolean> {
     let database = Config.sqlServer.databases[0];
     let sql = new SqlServerProvider({server, database}, logger);
     try {
-        await sql.connect();
+        //await sql.connect();
         p.setResource('sql', sql);
         return true;
     }
