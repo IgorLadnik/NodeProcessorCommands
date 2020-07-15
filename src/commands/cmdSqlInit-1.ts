@@ -1,10 +1,10 @@
 export async function command(args: any, p: any): Promise<boolean> {
-    const thisCommandName = 'cmdSqlConnect';
+    const thisCommandName = 'cmdSqlInit';
     let logger = p.getLogger();
-    /*await*/ logger.log(`cmdSqlConnect: args: ${JSON.stringify(args)}`);
+    await logger.log(`cmdSqlInit: args: ${JSON.stringify(args)}`);
 
     const _ = await import(`${p.stdImportDir}/lodash`);
-    const SqlServerProvider = (await import(`${p.workingDir}/infrastructure/SqlServerProvider`)).SqlServerProvider;
+    const SqlServerProvider = (await import(`${p.workingDir}/infrastructure/sqlServerProvider`)).SqlServerProvider;
     const Config = (await import(`${p.workingDir}/config`)).Config;
 
     if (_.isNil(Config.sqlServer)) {
@@ -12,12 +12,13 @@ export async function command(args: any, p: any): Promise<boolean> {
         return true;
     }
 
-    let server = Config.sqlServer.host;
-    let database = Config.sqlServer.databases[0];
-    let sql = new SqlServerProvider({server, database}, logger);
     try {
-        //await sql.connect();
-        p.setResource('sql', sql);
+        p.setResource('sql', new SqlServerProvider({
+            server: Config.sqlServer.host,
+            database: Config.sqlServer.databases[0]
+        },
+        logger));
+
         return true;
     }
     catch (err) {

@@ -30,7 +30,7 @@ export async function command(args: any, p: any): Promise<boolean> {
     if (br) {
         let commandFirstFetch = new Command('cmdFirstFetch', {a: 'aaa', n: 1});
         if (!await p.execute(commandFirstFetch))
-            if (await p.execute(new Command('cmdSqlConnect')))
+            if (await p.execute(new Command('cmdSqlInit')))
                 await p.execute(commandFirstFetch);
     }
 
